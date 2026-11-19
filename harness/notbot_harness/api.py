@@ -12,9 +12,22 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
+from . import computer
 from .config import Settings
-from .domain import BotInput, ConnectionInput, ConversationInput, Decision, RunInput, WorkspaceInput
+from .domain import (
+    BotInput,
+    ConnectionInput,
+    ConversationInput,
+    Decision,
+    DesktopInput,
+    ForkInput,
+    MemoryInput,
+    ProposalDecision,
+    RunInput,
+    WorkspaceInput,
+)
 from .engine import Engine
+from .memory import CAPS
 from .provider import LocalProvider, Provider
 from .storage import Conflict, uid
 
@@ -85,19 +98,29 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
 
     @app.get("/api/v1/capabilities")
     def capabilities(runtime: Engine = auth):
+        provider = runtime.settings.web_search_provider
         return {
+            "web_search": {
+                "available": provider is not None,
+                "provider": provider,
+                "endpoint": runtime.settings.searxng_url or None,
+            },
             "tools": [
                 "list_directory",
                 "read_file",
                 "search_text",
+                *(["web_search"] if provider else []),
                 "write_file",
                 "read_artifact",
                 "search_memory",
+                "search_history",
                 "write_memory",
             ],
             "writes_require_approval": True,
             "remote_workers": False,
-            "desktop_control": False,
+            "desktop_control": runtime.settings.desktop_control
+            and computer.platform_supported()
+            and runtime.desk.binary is not None,
             "shell": False,
             "automations": False,
             "model_concurrency": 1,
@@ -157,6 +180,44 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
         )
         return {"base_url": validated.model_url, "model": body.model}
 
+    @app.get("/api/v1/desktop")
+    async def desktop(runtime: Engine = auth):
+        supported = computer.platform_supported()
+        installed = runtime.desk.binary is not None
+        status = await runtime.desk.status() if supported and installed else {}
+        return {
+            "enabled": runtime.settings.desktop_control,
+            "supported": supported,
+            "installed": installed,
+            "accessibility": bool(status.get("accessibility")),
+            "screen": bool(status.get("screen")),
+            "allow": runtime.desk.policy["allow"],
+            "block": runtime.desk.policy["block"],
+        }
+
+    @app.put("/api/v1/desktop")
+    async def configure_desktop(body: DesktopInput, runtime: Engine = auth):
+        if runtime.active_id:
+            raise Conflict("Pause or finish the active run before changing desktop control")
+        clean = lambda items: [item.strip()[:100] for item in items if item.strip()]  # noqa: E731
+        runtime.settings.desktop_control = body.enabled
+        await runtime.desk.set_policy(clean(body.allow), clean(body.block))
+        if not body.enabled:
+            await runtime.desk.stop()
+        runtime.store.put_entity(
+            "desktop_config",
+            {"id": "desktop", "enabled": body.enabled, **runtime.desk.policy},
+        )
+        return await desktop(runtime)
+
+    @app.post("/api/v1/desktop/stop")
+    async def stop_desktop(runtime: Engine = auth):
+        """The kill switch: end any desktop step now and cancel the active run."""
+        await runtime.desk.stop()
+        if runtime.active_id:
+            runtime.control(runtime.active_id, "cancel")
+        return {"stopped": True}
+
     @app.get("/api/v1/workspaces")
     def workspaces(runtime: Engine = auth):
         return runtime.store.entities("workspace")
@@ -209,6 +270,26 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
         if not bot["enabled"]:
             raise Conflict("Bot is disabled")
         record = {"id": uid(), **body.model_dump(), "created": time.time()}
+        runtime.store.put_entity("conversation", record)
+        return record
+
+    @app.post("/api/v1/conversations/{identifier}/fork", status_code=201)
+    def fork_conversation(identifier: str, body: ForkInput, runtime: Engine = auth):
+        """Start a new conversation that shares this one's history up to (not including) a run."""
+        parent = runtime.store.entity("conversation", identifier)
+        run = runtime.store.run(body.run_id)
+        if run["conversation_id"] != identifier:
+            raise Conflict("That task is not part of this conversation")
+        before = body.run_id + ":user"
+        if not any(m["data"].get("id") == before for m in runtime.history(identifier)):
+            raise Conflict("That task has no recorded message to branch from")
+        record = {
+            "id": uid(),
+            "bot_id": parent["bot_id"],
+            "workspace_id": parent["workspace_id"],
+            "created": time.time(),
+            "fork": {"conversation_id": identifier, "before": before},
+        }
         runtime.store.put_entity("conversation", record)
         return record
 
@@ -314,6 +395,50 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
             if vault.exists()
             else {"notes": [], "editable_through_approved_tools": True}
         )
+
+    def pending_proposals(runtime: Engine, bot_id: str) -> list[dict]:
+        return [
+            item
+            for item in runtime.store.entities("memory_proposal")
+            if item["bot_id"] == bot_id and item["status"] == "pending"
+        ]
+
+    @app.get("/api/v1/bots/{identifier}/memory")
+    def bot_memory(identifier: str, runtime: Engine = auth):
+        runtime.store.entity("bot", identifier)
+        return {
+            **runtime.memory.read(identifier),
+            "caps": CAPS,
+            "proposals": pending_proposals(runtime, identifier),
+        }
+
+    @app.put("/api/v1/bots/{identifier}/memory")
+    def set_bot_memory(identifier: str, body: MemoryInput, runtime: Engine = auth):
+        runtime.store.entity("bot", identifier)
+        runtime.memory.write(identifier, "memory", body.memory)
+        runtime.memory.write(identifier, "user", body.user)
+        return {
+            **runtime.memory.read(identifier),
+            "caps": CAPS,
+            "proposals": pending_proposals(runtime, identifier),
+        }
+
+    @app.post("/api/v1/memory/proposals/{identifier}")
+    def decide_proposal(identifier: str, body: ProposalDecision, runtime: Engine = auth):
+        proposal = runtime.store.entity("memory_proposal", identifier)
+        if proposal["status"] != "pending":
+            raise Conflict("That suggestion was already handled")
+        if body.decision == "accept":
+            runtime.memory.append(proposal["bot_id"], proposal["target"], proposal["text"])
+        runtime.store.put_entity(
+            "memory_proposal",
+            {**proposal, "status": "accepted" if body.decision == "accept" else "dismissed"},
+        )
+        return {
+            **runtime.memory.read(proposal["bot_id"]),
+            "caps": CAPS,
+            "proposals": pending_proposals(runtime, proposal["bot_id"]),
+        }
 
     @app.post("/api/v1/import")
     async def import_history(request: Request, runtime: Engine = auth):

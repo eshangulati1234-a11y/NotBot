@@ -32,7 +32,8 @@ function initialProvider(url: string): Provider {
 function explain(model: ModelState): { title: string; body: string } | null {
   switch (model.status) {
     case 'checking':
-      return { title: `Looking for a model on ${deviceName}…`, body: '' };
+      // The button shows the work; a block that appears and vanishes would shift everything below.
+      return null;
     case 'no-server':
       return {
         title: `Notbot can’t find a model on ${deviceName}`,
@@ -134,7 +135,7 @@ export function ModelSetup({ model, onDiscover, onSave, onRetry }: ModelSetupPro
           setSaved(false);
         }}
       />
-      {model.status === 'ready' ? null : <NextStep provider={provider} />}
+      {model.status === 'ready' || model.status === 'checking' ? null : <NextStep provider={provider} />}
       {provider === 'custom' ? (
         <Field label="Server address" hint="For example http://127.0.0.1:8080/v1">
           {(id, describedBy) => (
@@ -153,45 +154,53 @@ export function ModelSetup({ model, onDiscover, onSave, onRetry }: ModelSetupPro
         <Button variant="secondary" onClick={find} loading={finding} disabled={!url}>
           Find models
         </Button>
-        <Button variant="secondary" onClick={onRetry}>
+        <Button variant="secondary" onClick={onRetry} loading={model.status === 'checking'}>
           Try again
         </Button>
       </div>
-      {error ? (
-        <p className="nb-model-setup__error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {models.length ? (
-        <div className="nb-model-setup__pick">
-          <Field label="Model">
-            {(id, describedBy) => (
-              <select
-                id={id}
-                aria-describedby={describedBy}
-                className="nb-select"
-                value={chosen}
-                onChange={(event) => {
-                  setChosen(event.target.value);
-                  setSaved(false);
-                }}
-              >
-                {models.map((name) => (
+      <p className="nb-model-setup__error" role="alert" data-empty={!error || undefined}>
+        {error}
+      </p>
+      <div className="nb-model-setup__pick" data-idle={!models.length || undefined}>
+        <Field label="Model" hint={models.length ? 'Helpers will use this model.' : 'Find models to choose one.'}>
+          {(id, describedBy) => (
+            <select
+              id={id}
+              aria-describedby={describedBy}
+              className="nb-select"
+              value={models.length ? chosen : ''}
+              disabled={!models.length}
+              onChange={(event) => {
+                setChosen(event.target.value);
+                setSaved(false);
+              }}
+            >
+              {models.length ? (
+                models.map((name) => (
                   <option key={name} value={name}>
                     {name}
                   </option>
-                ))}
-              </select>
-            )}
-          </Field>
-          <div className="nb-model-setup__row">
-            <Button variant="primary" onClick={save} loading={saving} disabled={!chosen || !url}>
-              Use this model
-            </Button>
-            {saved ? <span className="nb-model-setup__saved">Saved</span> : null}
-          </div>
+                ))
+              ) : (
+                <option value="">No models yet</option>
+              )}
+            </select>
+          )}
+        </Field>
+        <div className="nb-model-setup__row">
+          <Button
+            variant="primary"
+            onClick={save}
+            loading={saving}
+            disabled={!models.length || !chosen || !url}
+          >
+            Use this model
+          </Button>
+          <span className="nb-model-setup__saved" aria-live="polite">
+            {saved ? 'Saved' : ''}
+          </span>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }

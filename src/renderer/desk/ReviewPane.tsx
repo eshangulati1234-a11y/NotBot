@@ -101,8 +101,9 @@ export function ReviewPane({ item, index, total, busy, onDecide, onNext, onClose
     return () => window.clearTimeout(timer);
   }, [settledKind]);
 
-  const allow = isRead ? 'Allow' : 'Apply change';
-  const deny = isRead ? "Don't allow" : 'Reject change';
+  const target = data.tool === 'computer_act' ? data.target : undefined;
+  const allow = target ? 'Allow this action' : isRead ? 'Allow' : 'Apply change';
+  const deny = isRead || target ? "Don't allow" : 'Reject change';
   const noun = isRead ? 'Request' : 'Change';
 
   return (
@@ -174,9 +175,23 @@ export function ReviewPane({ item, index, total, busy, onDecide, onNext, onClose
           <div className="nb-review-pane__body">
             <h2 className="nb-review-pane__title">{toolPhrase(data.tool, data.arguments, 'request')}</h2>
             {path && !isRead ? <PathChip path={path} state="proposed" /> : null}
-            {isRead ? (
+            {target ? (
+              <div className="nb-review-pane__target">
+                <dl>
+                  <dt>App</dt>
+                  <dd>{target.app ?? 'The front app'}</dd>
+                  {target.label ? (<><dt>{target.role ?? 'Item'}</dt><dd>{target.label}</dd></>) : null}
+                  {target.text ? (<><dt>Types</dt><dd>{target.text}</dd></>) : null}
+                  {target.key ? (<><dt>Key</dt><dd>{target.key}</dd></>) : null}
+                </dl>
+                {target.risk ? <p className="nb-review-pane__warn" role="note">Careful: this looks like it {target.risk}.</p> : null}
+                <p className="nb-review-pane__text">Notbot reads this from the screen, not from the helper’s description. Control + Option + Esc stops everything.</p>
+              </div>
+            ) : isRead ? (
               <p className="nb-review-pane__text">
-                This helper asks before it reads. Allow it to read this once, or keep it out.
+                {data.tool === 'web_search'
+                  ? `Allow this helper to send the displayed query to ${data.provider ?? "Brave Search"}${data.provider === "SearXNG" && data.endpoint ? ` at ${data.endpoint}` : ""} once.`
+                  : 'This helper asks before it reads. Allow it to read this once, or keep it out.'}
               </p>
             ) : diff ? (
               <>

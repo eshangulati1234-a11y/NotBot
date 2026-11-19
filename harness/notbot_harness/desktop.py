@@ -1,6 +1,7 @@
 """Private desktop sidecar: ephemeral loopback port and parent-owned lifetime."""
 
 import json
+import os
 import socket
 import sys
 import threading
@@ -13,6 +14,8 @@ from .config import Settings
 
 def main() -> None:
     settings = Settings.from_env()
+    if "NOTBOT_SEARXNG_URL" not in os.environ and not settings.web_search_provider:
+        settings.searxng_url = "http://127.0.0.1:8088"
     settings.host = "127.0.0.1"
     settings.remote_tls = False
     settings.initialise()

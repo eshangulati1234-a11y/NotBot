@@ -24,6 +24,8 @@ export interface RuntimeAPI {
   ): () => void;
   chooseWorkspace(): Promise<string | null>;
   saveArtifact(id: string): Promise<boolean>;
+  /** Opens the macOS Privacy pane where the user grants Notbot access. */
+  openPrivacy(pane: 'accessibility' | 'screen'): Promise<void>;
 }
 declare global {
   interface Window {

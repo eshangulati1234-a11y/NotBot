@@ -40,15 +40,17 @@ class LocalProvider:
             response.raise_for_status()
             return response.json().get("data", [])
 
-    async def generate(self, messages, tools, model, on_text):
+    async def generate(self, messages, tools, model, on_text, *, output_tokens=None):
         # Both SDK transports close even when generation is cancelled or times out.
         with httpx.Client(trust_env=False) as sync_transport:
             async with httpx.AsyncClient(trust_env=False) as async_transport:
                 return await self._generate(
-                    messages, tools, model, on_text, sync_transport, async_transport
+                    messages, tools, model, on_text, sync_transport, async_transport, output_tokens
                 )
 
-    async def _generate(self, messages, tools, model, on_text, sync_transport, async_transport):
+    async def _generate(
+        self, messages, tools, model, on_text, sync_transport, async_transport, output_tokens
+    ):
         client = ChatOpenAI(
             model=model,
             http_client=sync_transport,
@@ -56,12 +58,12 @@ class LocalProvider:
             base_url=self.settings.model_url,
             api_key=self.settings.model_key,
             temperature=0,
-            max_tokens=self.settings.output_tokens,
+            max_tokens=output_tokens or self.settings.output_tokens,
             timeout=self.settings.request_timeout,
             max_retries=1,
             use_responses_api=False,
         )
-        bound = client.bind_tools(tools, parallel_tool_calls=False)
+        bound = client.bind_tools(tools, parallel_tool_calls=False) if tools else client
         combined = None
         async for chunk in bound.astream(messages):
             combined = chunk if combined is None else combined + chunk
@@ -76,7 +78,13 @@ class LocalProvider:
         if message.invalid_tool_calls:
             raise ValueError("Model returned malformed tool arguments; no tools were executed")
         if not message.tool_calls and not message.text.strip():
-            raise ValueError("Model returned neither a final answer nor a tool request")
+            if message.response_metadata.get("finish_reason") == "length":
+                raise ProviderFailure(
+                    "The model used its output token budget before returning an answer or tool call. Increase NOTBOT_OUTPUT_TOKENS or use a shorter response."
+                )
+            raise ProviderFailure(
+                "The model stream ended without an answer or a structured tool call. Check the LM Studio model’s reasoning and tool-call settings."
+            )
         if not message.tool_calls:
             import json
 

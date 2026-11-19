@@ -1,0 +1,39 @@
+.nb-critter {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.nb-critter__fur {
+  fill: var(--nb-critter-fur);
+}
+
+.nb-critter__strokes path {
+  stroke: var(--nb-critter-shade);
+  stroke-opacity: 0.5;
+  stroke-width: 1.5;
+}
+
+.nb-critter__eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nb-critter-blink 5.5s ease-in-out var(--nb-critter-blink, 0s) infinite;
+}
+
+@keyframes nb-critter-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-critter__eyes {
+    animation: none;
+  }
+}

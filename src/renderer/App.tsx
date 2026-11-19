@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog } from './ui';
+import { CharacterStage } from './ui/3d/CharacterStage';
+import { canDraw3d } from './ui/3d/webgl';
 import { isMod, useShortcut } from './lib/keys';
 import { useNotbot } from './useNotbot';
 import { TitleBar } from './shell/TitleBar';
@@ -107,6 +109,7 @@ export function App() {
 
   return (
     <div className="nb-app">
+      {canDraw3d() ? <CharacterStage /> : null}
       <TitleBar
         phase={nb.phase}
         model={nb.model}

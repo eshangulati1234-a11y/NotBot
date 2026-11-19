@@ -1,0 +1,77 @@
+.nb-memory {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-3);
+  padding-block-start: var(--nb-space-4);
+  border-block-start: var(--nb-border);
+}
+
+.nb-memory__heading {
+  font-size: var(--nb-text-lg);
+  line-height: var(--nb-leading-lg);
+  font-weight: var(--nb-weight-strong);
+  color: var(--nb-ink);
+}
+
+.nb-memory__lead {
+  color: var(--nb-ink-2);
+}
+
+.nb-memory__learn {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-2);
+  color: var(--nb-ink);
+}
+
+.nb-memory__proposals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nb-memory__proposal {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-2);
+  padding: var(--nb-space-3);
+  background: var(--nb-surface);
+  border: var(--nb-border);
+  border-radius: var(--nb-radius-md);
+}
+
+.nb-memory__proposal-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.nb-memory__kicker {
+  font-size: var(--nb-text-sm);
+  color: var(--nb-ink-2);
+}
+
+.nb-memory__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-3);
+}
+
+.nb-memory__status {
+  font-size: var(--nb-text-sm);
+  color: var(--nb-ink-2);
+}
+
+.nb-memory__error {
+  /* Reserved so an error appearing does not move the dialog's buttons. */
+  min-height: var(--nb-leading-sm);
+  margin: 0;
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+  color: var(--nb-danger);
+}

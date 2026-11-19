@@ -11,6 +11,12 @@
   color: var(--nb-ink);
 }
 
+.nb-app__main > .nb-desk {
+  /* The desk is exactly the window's height. Its columns scroll, never the desk itself, so the
+     helper header can't be scrolled away and leave the page half empty. */
+  overflow: hidden;
+}
+
 .nb-desk[data-review] {
   grid-template-columns: var(--nb-tree-w) minmax(0, 1fr) var(--nb-review-w);
   grid-template-areas:

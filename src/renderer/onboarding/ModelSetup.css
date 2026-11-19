@@ -47,6 +47,9 @@
 }
 
 .nb-model-setup__error {
+  /* Always takes two lines so an error appearing does not push the rest of the dialog down. */
+  min-height: calc(var(--nb-leading-sm) * 2);
+  margin: 0;
   font-size: var(--nb-text-sm);
   line-height: var(--nb-leading-sm);
   color: var(--nb-danger);

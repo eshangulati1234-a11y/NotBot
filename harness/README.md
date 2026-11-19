@@ -16,6 +16,25 @@ The model-server address is resolved on this device. Model inference is separate
 
 Desktop state is stored in Electron's user-data directory, with internal authentication retained on disk under private directory permissions. The default macOS path matches the previous standalone harness location. Custom standalone state directories are separate; do not run a standalone process against the same directory while Electron owns it. The desktop uses an ephemeral loopback port, not fixed port 8787, and does not read the old manually saved connection file.
 
+## Live web search
+
+The desktop app uses a local SearXNG instance at `http://127.0.0.1:8088` by default. No account or search key is required. From the repository root, with Docker running:
+
+```bash
+(umask 077; set -C; printf 'SEARXNG_SECRET=%s\n' "$(openssl rand -hex 32)" > deploy/searxng/.env)
+docker compose -f deploy/searxng/compose.yaml up -d
+```
+
+Generate the local secret once. The container listens only on your machine. Its settings enable the JSON search API. Launch or restart Notbot as usual. For a different instance or the standalone service, set `NOTBOT_SEARXNG_URL` to the SearXNG base address, without `/search`, in the environment that starts Notbot. SearXNG forwards your query to its configured search engines. Engines vary in coverage and whether they apply locale and freshness filters.
+
+If you prefer Brave, start Notbot with `NOTBOT_BRAVE_SEARCH_API_KEY` and no SearXNG URL. An explicit SearXNG URL takes precedence when both are set. Use a Brave subscription permitting retention of search results.
+
+Helpers set to **Ask** show the query and provider before sending it. Search queries and bounded results are kept in the local run trail. Open a listing to check whether applications are still open.
+
+```bash
+docker compose -f deploy/searxng/compose.yaml stop
+```
+
 ## Standalone developer service
 
 The independent terminal service remains available for debugging and future host deployment. It is not required for the desktop app:

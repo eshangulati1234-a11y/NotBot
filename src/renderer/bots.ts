@@ -19,6 +19,9 @@ const names = [
 const adjectives = ['Little', 'Sunny', 'Cozy', 'Curious', 'Happy', 'Tiny', 'Sleepy', 'Bouncy'];
 
 /** Local naming needs no inference call and never reuses an existing name. */
+/** The job a new helper gets. Edit helper lets you give it more specific instructions. */
+export const DEFAULT_PURPOSE = 'Helps with the files in this folder.';
+
 export function generateBotName(existing: string[], random = Math.random): string {
   const used = new Set(existing.map((name) => name.trim().toLocaleLowerCase()));
   const choose = (pool: string[]) =>

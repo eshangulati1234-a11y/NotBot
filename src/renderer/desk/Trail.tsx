@@ -4,8 +4,9 @@ import type { Run } from '../api';
 import { finished } from '../api';
 import type { TaskView, TrailStep } from '../lib/trail';
 import { explainError, runStatusLabel } from '../lib/status';
-import { Button, EmptyState, IconButton, PathChip, StatusDot } from '../ui';
+import { Button, EmptyState, IconButton, PathChip, StatusDot, useAutoGrow } from '../ui';
 import { Markdown } from './markdown';
+import { MessageActions } from './MessageActions';
 import './Trail.css';
 
 interface Props {
@@ -17,6 +18,12 @@ interface Props {
   onReview: (approvalId: string) => void;
   onExport: (artifactId: string) => void;
   onPreview: (artifactId: string) => void;
+  /** Run the same text again as a new task. */
+  onResend: (task: string) => void;
+  /** Run an edited text on a branch that forgets the original task and what followed. */
+  onEditSend: (runId: string, task: string, key: string) => Promise<boolean>;
+  /** Why resending or editing is unavailable right now, if it is. */
+  blocked?: string;
 }
 
 const STICK_DISTANCE = 48;
@@ -137,11 +144,72 @@ interface BlockProps {
   onReview: (id: string) => void;
   onExport: (id: string) => void;
   onPreview: (id: string) => void;
+  onResend: (task: string) => void;
+  onEditSend: (runId: string, task: string, key: string) => Promise<boolean>;
+  blocked?: string;
+}
+
+interface EditorProps {
+  initial: string;
+  onCancel: () => void;
+  onSend: (task: string, key: string) => Promise<boolean>;
+}
+
+function TaskEditor({ initial, onCancel, onSend }: EditorProps) {
+  const [draft, setDraft] = useState(initial);
+  const [sending, setSending] = useState(false);
+  const key = useRef(crypto.randomUUID());
+  const ref = useAutoGrow(draft);
+  useEffect(() => {
+    const el = ref.current;
+    if (el) {
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    }
+  }, [ref]);
+  const task = draft.trim();
+  const send = async () => {
+    if (!task || sending) return;
+    setSending(true);
+    const ok = await onSend(task, key.current).catch(() => false);
+    setSending(false);
+    if (ok) onCancel();
+  };
+  return (
+    <div className="nb-trail__edit">
+      <textarea
+        ref={ref}
+        className="nb-textarea"
+        aria-label="Edit task"
+        rows={1}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            onCancel();
+          } else if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            void send();
+          }
+        }}
+      />
+      <div className="nb-trail__edit-buttons">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button variant="primary" onClick={() => void send()} loading={sending} disabled={!task}>
+          Send
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 function TaskBlock(props: BlockProps) {
-  const { task, compact, active, liveText, knownPaths, focusApprovalId, onReview, onExport, onPreview } = props;
+  const { task, compact, active, liveText, knownPaths, focusApprovalId, onReview, onExport, onPreview, onResend, onEditSend, blocked } = props;
   const [open, setOpen] = useState(!compact);
+  const [editing, setEditing] = useState(false);
   const run = task.run;
   const hasEnd = task.steps.some((s) => s.kind === 'end');
   const needsFresh = run?.status === 'needs_review';
@@ -151,6 +219,26 @@ function TaskBlock(props: BlockProps) {
   // A changed file that already has an applied review step is shown there; only list the rest.
   const reviewed = new Set(task.steps.flatMap((s) => (s.kind === 'review' && s.state === 'applied' && s.path ? [s.path] : [])));
   const unlisted = task.changed.filter((p) => !reviewed.has(p));
+  const runId = task.run?.id;
+  // Imported history has no run to branch from, so it can be copied but not resent or edited.
+  const ask = editing && runId ? (
+    <TaskEditor
+      initial={task.task}
+      onCancel={() => setEditing(false)}
+      onSend={(text, key) => onEditSend(runId, text, key)}
+    />
+  ) : (
+    <div className="nb-trail__ask-row">
+      <p className="nb-trail__ask-text">{task.task}</p>
+      <MessageActions
+        what="message"
+        text={task.task}
+        blocked={blocked}
+        onResend={runId ? () => onResend(task.task) : undefined}
+        onEdit={runId ? () => setEditing(true) : undefined}
+      />
+    </div>
+  );
 
   return (
     <article className="nb-trail__task" data-compact={compact || undefined} aria-busy={active || undefined}>
@@ -172,12 +260,12 @@ function TaskBlock(props: BlockProps) {
       ) : (
         <header className="nb-trail__ask">
           <span className="nb-trail__kicker">Task</span>
-          <p className="nb-trail__ask-text">{task.task}</p>
+          {ask}
         </header>
       )}
       {open ? (
         <div className="nb-trail__work">
-          {compact ? <p className="nb-trail__ask-text">{task.task}</p> : null}
+          {compact ? ask : null}
           {task.steps.length > 0 ? (
             <ol className="nb-trail__steps">
               {task.steps.map((step) => (
@@ -198,9 +286,25 @@ function TaskBlock(props: BlockProps) {
               {liveText}
             </p>
           ) : null}
-          {task.answer ? (
+          {task.answer || task.sources?.length ? (
             <div className="nb-trail__reply" data-streaming={task.streaming || undefined}>
-              <Markdown text={task.answer} known={knownPaths} />
+              {task.answer ? <Markdown text={task.answer} known={knownPaths} sources={task.sources} /> : null}
+              {task.answer && !task.streaming ? <MessageActions what="reply" text={task.answer} /> : null}
+              {!!task.sources?.length && (
+                <details className="nb-trail__sources">
+                  <summary>Sources ({task.sources.length})</summary>
+                  <ul>
+                    {task.sources.map((source) => (
+                      <li key={source.id}>
+                        <a href={source.url} target="_blank" rel="noopener noreferrer">
+                          [{source.id}] {source.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  <small>Web search leads. Open a source to verify its details.</small>
+                </details>
+              )}
               {task.answerArtifactId ? (
                 <div className="nb-trail__actions">
                   <IconButton
@@ -256,7 +360,7 @@ function TaskBlock(props: BlockProps) {
 }
 
 export function Trail(props: Props) {
-  const { tasks, liveText, activeRun, knownPaths, focusApprovalId, onReview, onExport, onPreview } = props;
+  const { tasks, liveText, activeRun, knownPaths, focusApprovalId, onReview, onExport, onPreview, onResend, onEditSend, blocked } = props;
   const scroller = useRef<HTMLDivElement>(null);
   const stuck = useRef(true);
   const [away, setAway] = useState(false);
@@ -340,6 +444,9 @@ export function Trail(props: Props) {
                       onReview={onReview}
                       onExport={onExport}
                       onPreview={onPreview}
+                      onResend={onResend}
+                      onEditSend={onEditSend}
+                      blocked={blocked}
                     />
                   ))
                 : null}
@@ -357,6 +464,9 @@ export function Trail(props: Props) {
               onReview={onReview}
               onExport={onExport}
               onPreview={onPreview}
+              onResend={onResend}
+              onEditSend={onEditSend}
+              blocked={blocked}
             />
           ) : null}
         </div>

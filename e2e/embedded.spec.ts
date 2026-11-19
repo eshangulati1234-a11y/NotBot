@@ -45,7 +45,6 @@ test('packaged Notbot runs its bundled harness without Python or uv on PATH', as
     await page.getByRole('button', { name: 'Choose folder', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Choose another folder' })).toBeVisible();
     const purpose = 'Inspect workspace files with tools.';
-    await page.getByRole('textbox', { name: 'What should this helper do?' }).fill(purpose);
     await page.getByRole('button', { name: 'Create helper', exact: true }).click();
     const taskBox = page.getByRole('textbox', { name: 'Task', exact: true });
     await expect(taskBox).toBeVisible({ timeout: 30000 });
@@ -69,6 +68,8 @@ test('packaged Notbot runs its bundled harness without Python or uv on PATH', as
         .toBe('completed');
       return id;
     };
+    await taskBox.fill(purpose);
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
     await waitFor(purpose);
     await expect(taskBox).toBeEnabled({ timeout: 15000 });
 

@@ -7,6 +7,24 @@ export interface Bot {
   enabled: boolean;
   model: string | null;
   safety: Safety;
+  /** Whether the helper suggests things to remember after a task. Absent means on. */
+  learn?: boolean;
+  /** Whether the helper may look at and use apps on this Mac. Absent means off. */
+  computer?: boolean;
+}
+
+export interface MemoryProposal {
+  id: string;
+  bot_id: string;
+  run_id: string;
+  target: 'memory' | 'user';
+  text: string;
+}
+export interface BotMemory {
+  memory: string;
+  user: string;
+  caps: { memory: number; user: number };
+  proposals: MemoryProposal[];
 }
 export type RunStatus =
   | 'queued'
@@ -64,12 +82,16 @@ export interface Approval {
   expires: number;
   data: {
     tool: string;
+    provider?: string;
+    endpoint?: string;
     arguments: { path?: string; content?: string; query?: string; [key: string]: unknown };
     diff?: string;
     diff_truncated?: boolean;
     before_hash?: string | null;
     after_hash?: string | null;
     size?: number;
+    /** For Mac actions: what the action will touch, read from the screen. */
+    target?: { action: string; app?: string; role?: string; label?: string; risk?: string | null; text?: string; key?: string };
   };
 }
 export interface Workspace {

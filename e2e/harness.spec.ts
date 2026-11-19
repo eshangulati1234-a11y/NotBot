@@ -84,13 +84,13 @@ test('built-in harness starts automatically and runs real read and approval task
     await page.getByRole('button', { name: 'Choose folder', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Choose another folder' })).toBeVisible();
     const purpose = 'Inspect project files using tools.';
-    await page.getByRole('textbox', { name: 'What should this helper do?' }).fill(purpose);
     await page.getByRole('button', { name: 'Create helper', exact: true }).click();
 
-    // Creating a helper starts its first task; wait for it so the composer is free.
-    await expect(page.getByRole('textbox', { name: 'Task', exact: true })).toBeVisible({
-      timeout: 30000,
-    });
+    // Creating a helper opens its chat with nothing running yet; send the first task.
+    const taskBox = page.getByRole('textbox', { name: 'Task', exact: true });
+    await expect(taskBox).toBeVisible({ timeout: 30000 });
+    await taskBox.fill(purpose);
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
     await expectRunCompleted(page, purpose);
     await expect(page.getByRole('textbox', { name: 'Task', exact: true })).toBeEnabled({
       timeout: 15000,

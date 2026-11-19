@@ -125,14 +125,6 @@
   gap: var(--nb-space-2);
 }
 
-.nb-create-helper__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--nb-space-2);
-  list-style: none;
-  padding: 0;
-}
-
 .nb-create-helper__foot {
   display: flex;
   justify-content: flex-end;

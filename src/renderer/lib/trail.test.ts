@@ -3,6 +3,7 @@ import type { RuntimeEvent } from '../../shared/runtime';
 import { ai, approval, artifact, conversation, human, run, tool } from './fixtures';
 import {
   deriveTasks,
+  failureReason,
   linkPaths,
   liveLine,
   reduceLive,
@@ -62,6 +63,38 @@ describe('deriveTasks', () => {
     expect(task.steps.at(-1)).toMatchObject({ kind: 'end', tone: 'done' });
   });
 
+  it('keeps web sources tied to actual tool results and separates search scopes', () => {
+    const result = tool('r1:tool:1:1', 'web', {
+      checked_at: '2026-11-19T00:00:00Z',
+      results: [
+        { source_id: 'web-1-1', title: 'Junior developer', url: 'https://example.com/job' },
+        { source_id: 'web-1-2', title: 'Bad URL', url: 'javascript:alert(1)' },
+      ],
+    });
+    result.data.name = 'web_search';
+    const [task] = deriveTasks(
+      [conversation({ messages: [
+        human('r1:user', 'Find Melbourne job listings'),
+        ai('r1:model:1', '', [
+          { id: 'local', name: 'search_text', args: { query: 'jobs' } },
+          { id: 'web', name: 'web_search', args: { query: 'Melbourne' } },
+          { id: 'failed', name: 'web_search', args: { query: 'AI developer' } },
+        ]),
+        tool('r1:tool:1:0', 'local', { matches: [] }),
+        result,
+        tool('r1:tool:1:2', 'failed', { error: 'Brave Search timed out.' }),
+        ai('r1:model:2', 'A lead [web-1-1]. https://invented.example'),
+      ] })],
+      [run({status: 'completed'})], [], [], {},
+    );
+    expect(task.sources).toEqual([
+      { id: 'web-1-1', title: 'Junior developer', url: 'https://example.com/job', checkedAt: '2026-11-19T00:00:00Z' },
+    ]);
+    expect(task.steps[0]).toMatchObject({ label: 'Searched workspace for "jobs"', state: 'done' });
+    expect(task.steps[1]).toMatchObject({ label: 'Searched the web for "Melbourne"', state: 'done' });
+    expect(task.steps[2]).toMatchObject({ label: 'Couldn’t search the web: Brave Search timed out', state: 'error' });
+  });
+
   it('has no backup id for a new file or a missing artifact', () => {
     const base = { id: 'r1:tool:2:0:approval', status: 'consumed' as const };
     const fresh = approval({ ...base, data: { tool: 'write_file', arguments: { path: 'README.md' }, before_hash: null } });
@@ -90,7 +123,7 @@ describe('deriveTasks', () => {
     );
     const review = task.steps.find((s) => s.kind === 'review');
     expect(review).toMatchObject({ state: 'rejected', backupArtifactId: null });
-    expect(task.steps.find((s) => s.kind === 'tool')).toMatchObject({ state: 'error', label: "Couldn't change b.md" });
+    expect(task.steps.find((s) => s.kind === 'tool')).toMatchObject({ state: 'error', label: "Couldn't change b.md: A human rejected an action in this run" });
     expect(task.changed).toEqual([]);
     expect(task.steps.at(-1)).toMatchObject({ kind: 'end', tone: 'stopped', text: 'Stopped' });
   });
@@ -222,5 +255,15 @@ describe('linkPaths', () => {
     ]);
     expect(linkPaths('plain', [])).toEqual([{ kind: 'text', text: 'plain' }]);
     expect(linkPaths('', ['a'])).toEqual([]);
+  });
+});
+
+describe('failureReason', () => {
+  it('keeps the first sentence and shortens long ones', () => {
+    expect(failureReason('Web search budget reached or this request was interrupted. More text.')).toBe(
+      'Web search budget reached or this request was interrupted',
+    );
+    expect(failureReason('x'.repeat(200)).length).toBe(88);
+    expect(failureReason('')).toBe('');
   });
 });

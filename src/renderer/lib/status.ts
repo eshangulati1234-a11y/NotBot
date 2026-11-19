@@ -51,6 +51,14 @@ const text = (value: unknown): string => (typeof value === 'string' ? value.trim
 const isRoot = (path: string) => path === '' || path === '.' || path === './' || path === '/';
 
 /** One plain-language line for a tool call, in the tense that suits where it is shown. */
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
 export function toolPhrase(name: string, args: Args, tense: Tense): string {
   const path = text(args?.path);
   const pick = (live: string, past: string, request: string) =>
@@ -64,10 +72,35 @@ export function toolPhrase(name: string, args: Args, tense: Tense): string {
       return path
         ? pick(`Reading ${path}...`, `Read ${path}`, `Wants to read ${path}`)
         : pick('Reading a file...', 'Read a file', 'Wants to read a file');
+    case 'web_search': {
+      const query = text(args?.query);
+      const suffix = query ? ` for "${query}"` : '';
+      return pick(`Searching the web${suffix}…`, `Searched the web${suffix}`, `Wants to search the web${suffix}`);
+    }
+    case 'computer_look':
+      return pick('Looking at the screen…', 'Looked at the screen', 'Wants to look at the screen');
+    case 'computer_act': {
+      const action = text(args?.action);
+      const what: Record<string, [string, string, string]> = {
+        click: ['Clicking…', 'Clicked', 'Wants to click'],
+        type: ['Typing…', 'Typed', 'Wants to type'],
+        key: ['Pressing a key…', 'Pressed a key', 'Wants to press a key'],
+        scroll: ['Scrolling…', 'Scrolled', 'Wants to scroll'],
+        open_app: ['Opening an app…', 'Opened an app', 'Wants to open an app'],
+        focus_app: ['Switching apps…', 'Switched apps', 'Wants to switch apps'],
+      };
+      const [now, past, ask] = what[action] ?? ['Using the Mac…', 'Used the Mac', 'Wants to use the Mac'];
+      return pick(now, past, ask);
+    }
+    case 'fetch_page': {
+      const site = hostOf(text(args?.url));
+      const where = site ? ` from ${site}` : '';
+      return pick(`Opening a page${where}…`, `Read a page${where}`, `Wants to open a page${where}`);
+    }
     case 'search_text': {
       const query = text(args?.query);
       return query
-        ? pick(`Searching for "${query}"...`, `Searched for "${query}"`, `Wants to search for "${query}"`)
+        ? pick(`Searching workspace for "${query}"...`, `Searched workspace for "${query}"`, `Wants to search workspace for "${query}"`)
         : pick('Searching the folder...', 'Searched the folder', 'Wants to search the folder');
     }
     case 'write_file':
@@ -78,6 +111,8 @@ export function toolPhrase(name: string, args: Args, tense: Tense): string {
       return pick('Reading earlier output...', 'Read earlier output', 'Wants to read earlier output');
     case 'search_memory':
       return pick('Checking its notes...', 'Checked its notes', 'Wants to check its notes');
+    case 'search_history':
+      return pick('Looking back at earlier tasks...', 'Looked back at earlier tasks', 'Wants to look back at earlier tasks');
     case 'write_memory':
       return pick('Saving a note...', 'Saved a note', 'Wants to save a note');
     default:
@@ -127,9 +162,9 @@ const catalogue: { test: RegExp; title: string; next: string }[] = [
     next: 'Ask for a smaller piece of the job, or start a new task.',
   },
   {
-    test: /token budget|context limit|context window/i,
+    test: /token budget|context budget|context limit|context window/i,
     title: 'The model ran out of room',
-    next: 'Try a smaller task, or choose a model with a larger context.',
+    next: 'Try a smaller task, or increase Notbot’s context budget within the model server’s limit.',
   },
   {
     test: /tool request as plain text|structured tool calling/i,

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Check, FolderOpen } from 'lucide-react';
-import { Button, Field, useAutoGrow } from '../ui';
+import { Button } from '../ui';
 import { folderName } from '../api';
+import { DEFAULT_PURPOSE } from '../bots';
 import { deviceName } from '../lib/keys';
 import type { Notbot } from '../useNotbot';
 import { ModelSetup } from './ModelSetup';
@@ -10,6 +11,7 @@ import './CreateHelper.css';
 interface CreateHelperProps {
   nb: Notbot;
   variant: 'first-run' | 'dialog';
+  /** A task typed elsewhere (the command bar). It is sent as the first message once the helper exists. */
   initialPurpose?: string;
   onCreated: (botId: string) => void;
   onCancel?: () => void;
@@ -17,18 +19,9 @@ interface CreateHelperProps {
   onCreatingChange?: (creating: boolean) => void;
 }
 
-const starters = [
-  'Summarize what is in this folder',
-  'Find notes that look out of date',
-  'Check my writing for typos',
-  'Draft a README for this folder',
-];
-
 export function CreateHelper({ nb, variant, initialPurpose = '', onCreated, onCancel, onCreatingChange }: CreateHelperProps) {
   const workspaces = nb.snapshot.workspaces;
   const [workspaceId, setWorkspaceId] = useState('');
-  const [purpose, setPurpose] = useState(initialPurpose);
-  const purposeInput = useAutoGrow(purpose);
   const [creating, setCreating] = useState(false);
   const model = nb.model;
 
@@ -39,7 +32,7 @@ export function CreateHelper({ nb, variant, initialPurpose = '', onCreated, onCa
 
   const workspace = workspaces.find((w) => w.id === workspaceId);
   const modelReady = model.status === 'ready';
-  const canCreate = Boolean(workspace) && modelReady && purpose.trim().length > 0 && !creating;
+  const canCreate = Boolean(workspace) && modelReady && !creating;
 
   const choose = async () => {
     const picked = await nb.pickFolder();
@@ -51,10 +44,10 @@ export function CreateHelper({ nb, variant, initialPurpose = '', onCreated, onCa
     setCreating(true);
     onCreatingChange?.(true);
     try {
-      const text = purpose.trim();
-      const bot = await nb.createHelper(text, workspace.id);
+      const bot = await nb.createHelper(DEFAULT_PURPOSE, workspace.id);
       if (!bot) return;
-      await nb.startTask(bot.id, text, crypto.randomUUID());
+      const first = initialPurpose.trim();
+      if (first) await nb.startTask(bot.id, first, crypto.randomUUID());
       onCreated(bot.id);
     } finally {
       setCreating(false);
@@ -66,11 +59,11 @@ export function CreateHelper({ nb, variant, initialPurpose = '', onCreated, onCa
     <div className="nb-create-helper" data-variant={variant}>
       <header className="nb-create-helper__head">
         <h1 className="nb-create-helper__title">
-          {variant === 'first-run' ? 'Give a helper a job' : 'New helper'}
+          {variant === 'first-run' ? 'Set up your first helper' : 'New helper'}
         </h1>
         <p className="nb-create-helper__intro">
           A helper works in one folder on {deviceName}. It reads freely and asks before changing
-          anything.
+          anything. Once it is created, you can start chatting with it.
         </p>
       </header>
 
@@ -134,37 +127,6 @@ export function CreateHelper({ nb, variant, initialPurpose = '', onCreated, onCa
                 onRetry={() => void nb.checkModel()}
               />
             )}
-          </div>
-        </li>
-
-        <li className="nb-create-helper__step" data-done={false}>
-          <span className="nb-create-helper__num" aria-hidden="true">
-            3
-          </span>
-          <div className="nb-create-helper__body">
-            <Field label="What should this helper do?" hint="One sentence is enough. You can change it later.">
-              {(id, describedBy) => (
-                <textarea
-                  id={id}
-                  aria-describedby={describedBy}
-                  className="nb-textarea"
-                  ref={purposeInput}
-                  rows={3}
-                  value={purpose}
-                  onChange={(event) => setPurpose(event.target.value)}
-                  placeholder="For example: keep my meeting notes tidy and summarized"
-                />
-              )}
-            </Field>
-            <ul className="nb-create-helper__chips" aria-label="Ideas to start from">
-              {starters.map((text) => (
-                <li key={text}>
-                  <Button variant="secondary" onClick={() => setPurpose(text)}>
-                    {text}
-                  </Button>
-                </li>
-              ))}
-            </ul>
           </div>
         </li>
       </ol>

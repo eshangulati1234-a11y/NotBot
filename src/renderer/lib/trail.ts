@@ -32,7 +32,15 @@ export type TrailStep =
   | { kind: 'note'; id: string; text: string }
   | { kind: 'end'; id: string; tone: 'done' | 'stopped' | 'failed'; text: string };
 
+interface WebSource {
+  id: string;
+  title: string;
+  url: string;
+  checkedAt: string;
+}
+
 export interface TaskView {
+  sources?: WebSource[];
   id: string;
   run: Run | null;
   task: string;
@@ -73,13 +81,57 @@ function parseJson(text: string): Record<string, unknown> | null {
 
 const str = (value: unknown): string => (typeof value === 'string' ? value : '');
 
-function failedLabel(call: ToolCall): string {
+function webSources(messages: Message[]): WebSource[] {
+  const seen = new Set<string>();
+  const sources: WebSource[] = [];
+  for (const message of messages) {
+    if (message.type !== 'tool' || message.data.name !== 'web_search') continue;
+    const result = parseJson(messageText(message));
+    if (!Array.isArray(result?.results)) continue;
+    for (const value of result.results) {
+      const title = str(value?.title);
+      const id = str(value?.source_id);
+      try {
+        const url = new URL(str(value?.url));
+        if (url.protocol !== 'https:' || url.username || url.password || !title || !/^web-[1-3]-[1-5]$/.test(id) || seen.has(url.href)) continue;
+        seen.add(url.href);
+        sources.push({id, title, url: url.href, checkedAt: str(result.checked_at)});
+      } catch {
+        // Ignore malformed data in historical or imported tool results.
+      }
+    }
+  }
+  return sources;
+}
+
+/** A short, plain reason from the tool's own error, so a failed step says why. */
+export function failureReason(error: string): string {
+  const first = error.split(/(?<=[.!?])\s/)[0]?.trim() ?? '';
+  const clean = first.replace(/\s+/g, ' ').replace(/[.]+$/, '');
+  return clean.length > 90 ? `${clean.slice(0, 87)}…` : clean;
+}
+
+function failedLabel(call: ToolCall, error = ''): string {
+  const why = failureReason(error);
+  const base = failedBase(call);
+  return why ? `${base}: ${why}` : base;
+}
+
+function failedBase(call: ToolCall): string {
   const path = str(call.args?.path);
   switch (call.name) {
     case 'list_directory':
       return path && path !== '.' ? `Couldn't look in ${path}` : "Couldn't look around the folder";
     case 'read_file':
       return path ? `Couldn't read ${path}` : "Couldn't read a file";
+    case 'web_search':
+      return "Couldn’t search the web";
+    case 'fetch_page':
+      return "Couldn’t open the page";
+    case 'computer_look':
+      return "Couldn’t look at the screen";
+    case 'computer_act':
+      return "Couldn’t do that on the Mac";
     case 'search_text':
       return "Couldn't search the folder";
     case 'write_file':
@@ -157,7 +209,7 @@ function buildSteps(
       const call: ToolCall = { ...rawCall, args: (rawCall.args ?? {}) as Record<string, unknown> };
       const attemptId =
         run && turn ? `${run.id}:tool:${turn[1]}:${index}` : (resultById.get(call.id)?.data.id ?? call.id);
-      const message = results.get(call.id) ?? resultById.get(attemptId);
+      const message = resultById.get(attemptId) ?? results.get(call.id);
       const result = message ? parseJson(messageText(message)) : null;
       const approval = approvals.get(`${attemptId}${approvalSuffix}`);
       if (approval) {
@@ -167,19 +219,21 @@ function buildSteps(
         if (state === 'applied' && call.name === 'write_file' && path) {
           if (!changed.includes(path)) changed.push(path);
         }
-        steps.push({
-          kind: 'review',
-          id: attemptId,
-          approvalId: approval.id,
-          tool: approval.data.tool || call.name,
-          path,
-          state,
-          backupArtifactId:
-            state === 'applied' && approval.data.before_hash != null && artifacts.has(backupId)
-              ? backupId
-              : null,
-        });
-        return;
+        if (call.name !== 'web_search' || state !== 'applied') {
+          steps.push({
+            kind: 'review',
+            id: attemptId,
+            approvalId: approval.id,
+            tool: approval.data.tool || call.name,
+            path,
+            state,
+            backupArtifactId:
+              state === 'applied' && approval.data.before_hash != null && artifacts.has(backupId)
+                ? backupId
+                : null,
+          });
+          return;
+        }
       }
       const failed = !!result && typeof result.error === 'string';
       steps.push({
@@ -189,7 +243,7 @@ function buildSteps(
         label: !message
           ? toolPhrase(call.name, call.args, 'live')
           : failed
-            ? failedLabel(call)
+            ? failedLabel(call, String(result?.error ?? ''))
             : toolPhrase(call.name, call.args, 'past'),
         paths: toolPaths(call, result),
         state: !message ? 'running' : failed ? 'error' : 'done',
@@ -288,6 +342,7 @@ export function deriveTasks(
         id: run.id,
         run,
         task: human ? messageText(human) : run.task,
+        sources: webSources(messages),
         steps: end ? [...built.steps, end] : built.steps,
         answer,
         streaming,

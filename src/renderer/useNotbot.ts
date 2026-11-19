@@ -407,6 +407,8 @@ export function useNotbot() {
           enabled: bot.enabled,
           model: bot.model,
           safety: bot.safety,
+          learn: bot.learn ?? true,
+          computer: bot.computer ?? false,
         });
         return true;
       })) === true,
@@ -446,6 +448,31 @@ export function useNotbot() {
           conversationId = created.id;
         }
         conversationForKey.current.set(key, conversationId);
+        return request<Run>('POST', '/runs', { conversation_id: conversationId, task }, key);
+      });
+    },
+    [act],
+  );
+
+  /** Send an edited version of an earlier task on a branch that forgets that task and what followed. */
+  const editTask = useCallback(
+    async (runId: string, task: string, key: string): Promise<Run | undefined> => {
+      const source = snapshotRef.current.runs.find((item) => item.id === runId);
+      if (!source) {
+        setNotice('That task is no longer here.');
+        return undefined;
+      }
+      return act(async () => {
+        let conversationId = conversationForKey.current.get(key);
+        if (!conversationId) {
+          const branch = await request<Conversation>(
+            'POST',
+            `/conversations/${source.conversation_id}/fork`,
+            { run_id: runId },
+          );
+          conversationId = branch.id;
+          conversationForKey.current.set(key, conversationId);
+        }
         return request<Run>('POST', '/runs', { conversation_id: conversationId, task }, key);
       });
     },
@@ -513,6 +540,7 @@ export function useNotbot() {
     updateHelper,
     setHelperFolder,
     startTask,
+    editTask,
     runAction,
     decide,
     readArtifact,

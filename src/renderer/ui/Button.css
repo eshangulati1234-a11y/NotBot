@@ -84,6 +84,22 @@
   text-overflow: ellipsis;
 }
 
+.nb-button[data-loading][data-bare] {
+  position: relative;
+}
+
+/* With no icon to swap out, keep the label's width and lay the spinner over it so the button
+   does not grow while it works. */
+.nb-button[data-loading][data-bare] .nb-button__spinner {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.nb-button[data-loading][data-bare] .nb-button__label {
+  visibility: hidden;
+}
+
 .nb-button__spinner {
   animation: nb-button-spin calc(var(--nb-dur-slow) * 3) linear infinite;
 }

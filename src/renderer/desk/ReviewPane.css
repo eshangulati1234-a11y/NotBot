@@ -120,3 +120,24 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 40%, transparent);
   opacity: 1;
 }
+
+.nb-review-pane__target dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--nb-space-1) var(--nb-space-3);
+  margin: 0 0 var(--nb-space-3);
+}
+.nb-review-pane__target dt {
+  color: var(--nb-ink-2);
+}
+.nb-review-pane__target dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.nb-review-pane__warn {
+  margin: 0 0 var(--nb-space-3);
+  padding: var(--nb-space-2) var(--nb-space-3);
+  border-radius: var(--nb-radius-md);
+  background: var(--nb-danger-soft);
+  color: var(--nb-danger);
+}

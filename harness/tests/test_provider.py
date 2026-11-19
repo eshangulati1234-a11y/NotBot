@@ -63,3 +63,22 @@ async def test_provider_cancellation_closes_transports(monkeypatch):
     with pytest.raises(asyncio.CancelledError):
         await task
     assert all(transport.is_closed for transport in transports)
+
+
+@pytest.mark.asyncio
+async def test_reasoning_only_cutoff_explains_output_budget(monkeypatch):
+    class ReasoningOnly:
+        def __init__(self, **kwargs):
+            pass
+
+        async def astream(self, messages):
+            yield AIMessageChunk(content="", additional_kwargs={"reasoning_content": "private"})
+            yield AIMessageChunk(content="", response_metadata={"finish_reason": "length"})
+
+    monkeypatch.setattr("notbot_harness.provider.ChatOpenAI", ReasoningOnly)
+
+    async def on_text(text):
+        pytest.fail("Reasoning must not be shown as an answer")
+
+    with pytest.raises(ProviderFailure, match="output token budget"):
+        await LocalProvider(Settings()).generate([], [], "test", on_text)

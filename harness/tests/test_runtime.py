@@ -302,3 +302,46 @@ def test_context_preserves_current_tool_pairing():
     assert any(isinstance(message, AIMessage) and message.tool_calls for message in selected)
     with pytest.raises(ContextLimit):
         prepare([HumanMessage(content="x" * 10000)], "purpose", [], 2048, 1024)
+
+
+def test_context_compacts_web_results_without_losing_citations_or_tool_pairing():
+    import json
+
+    from langchain.messages import HumanMessage, ToolMessage
+
+    from notbot_harness.tools import Tools
+
+    messages = [HumanMessage(content="Find reliable installation instructions")]
+    originals = []
+    for turn in range(1, 4):
+        request = call("web_search", query=f"search {turn}")
+        identifier = f"query-{turn}"
+        request.tool_calls[0]["id"] = identifier
+        output = ToolMessage(
+            name="web_search",
+            tool_call_id=identifier,
+            content=json.dumps(
+                {
+                    "results": [
+                        {
+                            "source_id": f"web-{turn}-{i}",
+                            "title": f"Documentation {i}",
+                            "url": "https://example.com/" + "p" * 250,
+                            "excerpt": "Evidence " * 30,
+                        }
+                        for i in range(1, 6)
+                    ]
+                }
+            ),
+        )
+        originals.append(output)
+        messages.extend((request, output))
+    prepared, metrics = prepare(messages, "Research", Tools.schemas(web_enabled=True), 8192, 1024)
+    results = [message for message in prepared if isinstance(message, ToolMessage)]
+    assert metrics["estimated_input_tokens"] <= 7168
+    assert metrics["compacted_tool_results"] == 3
+    assert [message.tool_call_id for message in results] == [
+        message.tool_call_id for message in originals
+    ]
+    assert json.loads(results[-1].content)["results"][-1]["source_id"] == "web-3-5"
+    assert "https://example.com/" in originals[-1].content

@@ -1,9 +1,11 @@
+import { DEFAULT_PURPOSE } from '../bots';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import type { Artifact, Safety } from '../api';
 import { finished, folderName } from '../api';
 import type { HelperView, ReviewItem } from '../lib/helpers';
 import { deriveTasks, liveLine } from '../lib/trail';
+import { activityForTool, charStateFor } from '../lib/charState';
 import { deriveTree, type TreeNode } from '../lib/tree';
 import type { Notbot } from '../useNotbot';
 import { Button, HelperMark } from '../ui';
@@ -166,12 +168,19 @@ export function Desk({ nb, helper, focusApprovalId, onFocusApproval, onEditHelpe
     <div className="nb-desk" data-review={showReview || undefined}>
       <header className="nb-desk__head">
         <div className="nb-desk__who">
-          <HelperMark name={helper.bot.name} size={28} />
+          <HelperMark
+            botId={helper.bot.id}
+            name={helper.bot.name}
+            size={104}
+            state={charStateFor(helper.state, activityForTool(run ? nb.live[run.id]?.tool : null))}
+          />
           <div className="nb-desk__titles">
             <h1 className="nb-desk__title">{helper.bot.name}</h1>
-            <p className="nb-desk__purpose" title={helper.bot.purpose}>
-              {helper.bot.purpose}
-            </p>
+            {helper.bot.purpose !== DEFAULT_PURPOSE ? (
+              <p className="nb-desk__purpose" title={helper.bot.purpose}>
+                {helper.bot.purpose}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="nb-desk__tools">
@@ -203,6 +212,9 @@ export function Desk({ nb, helper, focusApprovalId, onFocusApproval, onEditHelpe
           }}
           onExport={(id) => void nb.exportArtifact(id)}
           onPreview={openPreview}
+          onResend={(text) => void nb.startTask(helper.bot.id, text, crypto.randomUUID())}
+          onEditSend={async (runId, text, key) => !!(await nb.editTask(runId, text, key))}
+          blocked={disabledReason}
         />
         <div className="nb-desk__dock">
           <div className="nb-desk__dock-inner">

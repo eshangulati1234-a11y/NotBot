@@ -1,0 +1,11 @@
+.nb-stage {
+  position: fixed !important;
+  inset: 0;
+  z-index: var(--nb-z-stage);
+}
+
+/* The stage only draws; it must never catch a click meant for the page below it. */
+.nb-stage,
+.nb-stage * {
+  pointer-events: none !important;
+}

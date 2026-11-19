@@ -6,6 +6,7 @@ const runtime: RuntimeAPI = {
     ipcRenderer.invoke('runtime:request', method, path, body, key),
   chooseWorkspace: () => ipcRenderer.invoke('runtime:workspace'),
   saveArtifact: (id) => ipcRenderer.invoke('runtime:save-artifact', id),
+  openPrivacy: (pane) => ipcRenderer.invoke('runtime:open-privacy', pane),
   subscribe: (after, listener, onError) => {
     const receive = (_event: Electron.IpcRendererEvent, value: RuntimeEvent) => listener(value);
     const error = (_event: Electron.IpcRendererEvent, message: string) => onError(message);

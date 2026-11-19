@@ -51,6 +51,7 @@ class Store:
             CREATE TABLE IF NOT EXISTS artifacts(id TEXT PRIMARY KEY, run_id TEXT, name TEXT NOT NULL, content BLOB NOT NULL, sha256 TEXT NOT NULL, created REAL NOT NULL);
             CREATE TABLE IF NOT EXISTS imports(id TEXT PRIMARY KEY, data TEXT NOT NULL);
             CREATE VIRTUAL TABLE IF NOT EXISTS notes USING fts5(path UNINDEXED, content);
+            CREATE VIRTUAL TABLE IF NOT EXISTS history USING fts5(run_id UNINDEXED, bot_id UNINDEXED, content);
         """)
         version = self.db.execute("SELECT version FROM schema_version").fetchone()[0]
         if version != 1:
@@ -187,12 +188,43 @@ class Store:
         with self.transaction() as db:
             self._event(db, run_id, kind, data)
 
+    def started_tools(self, run_id: str, name: str) -> set[str]:
+        with self.lock:
+            rows = self.db.execute(
+                "SELECT data FROM events WHERE run_id=? AND kind='tool.started'", (run_id,)
+            ).fetchall()
+        return {
+            data["attempt_id"] for row in rows if (data := json.loads(row["data"]))["name"] == name
+        }
+
     def events(self, after: int = 0) -> list[dict]:
         with self.lock:
             rows = self.db.execute(
                 "SELECT * FROM events WHERE seq>? ORDER BY seq LIMIT 200", (after,)
             ).fetchall()
         return [{**dict(row), "data": json.loads(row["data"])} for row in rows]
+
+    def index_history(self, run_id: str, bot_id: str, content: str):
+        with self.transaction() as db:
+            db.execute("DELETE FROM history WHERE run_id=?", (run_id,))
+            db.execute(
+                "INSERT INTO history(run_id,bot_id,content) VALUES(?,?,?)",
+                (run_id, bot_id, content),
+            )
+
+    def search_history(
+        self, bot_id: str, words: list[str], exclude: str, limit: int = 5
+    ) -> list[dict]:
+        if not words:
+            return []
+        query = " OR ".join('"' + word.replace('"', '""') + '"' for word in words)
+        with self.lock:
+            rows = self.db.execute(
+                "SELECT run_id,snippet(history,2,'[',']','…',24) AS excerpt FROM history "
+                "WHERE history MATCH ? AND bot_id=? AND run_id<>? ORDER BY rank LIMIT ?",
+                (query, bot_id, exclude, limit),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def message(self, conversation_id: str, identifier: str, data: dict):
         with self.transaction() as db:

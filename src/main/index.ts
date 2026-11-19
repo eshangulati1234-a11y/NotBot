@@ -1,7 +1,8 @@
-import { app, BrowserWindow, nativeTheme, shell } from 'electron';
+import { app, BrowserWindow, globalShortcut, nativeTheme, shell } from 'electron';
 import { join } from 'node:path';
 import { registerRuntime } from './runtime';
 import { ManagedHarness } from './harness';
+import { stopDesktop } from './overlay';
 const harness = new ManagedHarness();
 let quitting = false;
 let stopRuntimeEvents: () => void = () => {};
@@ -36,6 +37,8 @@ app.whenReady().then(() => {
   nativeTheme.on('updated', syncBackground);
   win.on('closed', () => nativeTheme.off('updated', syncBackground));
   stopRuntimeEvents = registerRuntime(win, harness);
+  // Kill switch for desktop control: works even when Notbot is not the front app.
+  globalShortcut.register('Control+Alt+Escape', () => stopDesktop(harness));
   void harness.start().catch(() => {
     /* Renderer shows startup recovery. */
   });
@@ -51,4 +54,5 @@ app.whenReady().then(() => {
   if (process.env.ELECTRON_RENDERER_URL) void win.loadURL(process.env.ELECTRON_RENDERER_URL);
   else void win.loadFile(join(__dirname, '../renderer/index.html'));
 });
+app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => app.quit());

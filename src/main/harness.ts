@@ -52,7 +52,18 @@ export class ManagedHarness {
         ];
     const child = spawn(command, args, {
       cwd: packaged ? process.resourcesPath : app.getAppPath(),
-      env: { ...process.env, NOTBOT_DATA_DIR: app.getPath('userData'), PYTHONUNBUFFERED: '1' },
+      env: {
+        ...process.env,
+        NOTBOT_DATA_DIR: app.getPath('userData'),
+        PYTHONUNBUFFERED: '1',
+        ...(process.platform === 'darwin'
+          ? {
+              NOTBOT_DESKHAND_PATH: packaged
+                ? join(process.resourcesPath, 'deskhand', 'deskhand')
+                : join(app.getAppPath(), 'dist', 'deskhand', 'deskhand'),
+            }
+          : {}),
+      },
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
     });

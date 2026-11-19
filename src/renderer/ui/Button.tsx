@@ -33,6 +33,7 @@ export function Button({
       data-variant={variant}
       data-tone={tone}
       data-loading={loading || undefined}
+      data-bare={!Icon || undefined}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
     >

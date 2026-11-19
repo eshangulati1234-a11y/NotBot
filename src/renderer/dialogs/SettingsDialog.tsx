@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { FolderPlus } from 'lucide-react';
 import { Button, Dialog, EmptyState, Segmented } from '../ui';
-import { folderName } from '../api';
+import { folderName, request } from '../api';
 import { deviceName } from '../lib/keys';
 import { useThemeChoice, type ThemeChoice } from '../theme';
 import type { Notbot } from '../useNotbot';
 import { ModelSetup } from '../onboarding/ModelSetup';
+import { DesktopControl } from './DesktopControl';
 import './SettingsDialog.css';
 
-type Section = 'appearance' | 'model' | 'folders';
+type Section = 'appearance' | 'model' | 'folders' | 'desktop';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -33,6 +34,7 @@ function modelSummary(nb: Notbot): string {
 export function SettingsDialog({ open, onOpenChange, nb, section }: SettingsDialogProps) {
   const [theme, setTheme] = useThemeChoice();
   const workspaces = nb.snapshot.workspaces;
+  const [webSearch, setWebSearch] = useState<{ provider: string | null; endpoint?: string | null } | null>(null);
   const [changing, setChanging] = useState(false);
   const showSetup = changing || nb.model.status !== 'ready';
 
@@ -49,12 +51,22 @@ export function SettingsDialog({ open, onOpenChange, nb, section }: SettingsDial
     return () => cancelAnimationFrame(frame);
   }, [open, section]);
 
+  useEffect(() => {
+    if (!open) return;
+    let current = true;
+    setWebSearch(null);
+    void request<{ web_search?: { provider: string | null; endpoint?: string | null } }>('GET', '/capabilities')
+      .then((data) => { if (current) setWebSearch(data.web_search ?? { provider: null }); })
+      .catch(() => {});
+    return () => { current = false; };
+  }, [open]);
+
   return (
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
       title="Settings"
-      description={`Everything here stays on ${deviceName}.`}
+      description="Manage your device, models and connected tools."
       size="md"
     >
       <div className="nb-settings-dialog">
@@ -84,6 +96,26 @@ export function SettingsDialog({ open, onOpenChange, nb, section }: SettingsDial
               </Button>
             </div>
           )}
+        </section>
+
+        <section className="nb-settings-dialog__section" aria-labelledby="nb-settings-web-h">
+          <h3 id="nb-settings-web-h" className="nb-settings-dialog__heading">Web search</h3>
+          <p className="nb-settings-dialog__text">
+            {webSearch?.provider === 'SearXNG'
+              ? `Notbot uses SearXNG at ${webSearch.endpoint}. Keep your instance running. It forwards queries to the search engines you enabled.`
+              : webSearch?.provider === 'Brave Search'
+                ? 'Web search queries are sent to Brave Search.'
+                : webSearch
+                  ? 'Start a local SearXNG instance, or set NOTBOT_SEARXNG_URL to your own instance and restart Notbot.'
+                  : 'Web search configuration has not been confirmed.'}
+          </p>
+        </section>
+
+        <section id="nb-settings-desktop" className="nb-settings-dialog__section" aria-labelledby="nb-settings-desktop-h">
+          <h3 id="nb-settings-desktop-h" className="nb-settings-dialog__heading">
+            Desktop control
+          </h3>
+          <DesktopControl open={open} />
         </section>
 
         <section id="nb-settings-folders" className="nb-settings-dialog__section" aria-labelledby="nb-settings-folders-h">

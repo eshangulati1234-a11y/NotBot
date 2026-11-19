@@ -1,7 +1,8 @@
-import { BrowserWindow, dialog, ipcMain } from 'electron';
+import { BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import type { ManagedHarness } from './harness';
 import type { RuntimeConnection, RuntimeEvent } from '../shared/runtime';
+import { createDesktopOverlay } from './overlay';
 
 const routes: [string, RegExp][] = [
   [
@@ -10,13 +11,19 @@ const routes: [string, RegExp][] = [
   ],
   ['GET', /^\/(runs|artifacts)\/[\w:.-]+$/],
   ['GET', /^\/conversations\/[\w:.-]+\/messages$/],
+  ['GET', /^\/bots\/[\w:.-]+\/memory$/],
+  ['GET', /^\/desktop$/],
   ['POST', /^\/(workspaces|bots|conversations|runs|import|models\/discover)$/],
   ['POST', /^\/runs\/[\w:.-]+\/(pause|resume|cancel)$/],
+  ['POST', /^\/conversations\/[\w:.-]+\/fork$/],
   ['POST', /^\/approvals\/[\w:.-]+$/],
-  ['PUT', /^\/(models\/config|bots\/[\w:.-]+)$/],
+  ['POST', /^\/desktop\/stop$/],
+  ['POST', /^\/memory\/proposals\/[\w:.-]+$/],
+  ['PUT', /^\/(models\/config|desktop|bots\/[\w:.-]+(\/memory)?)$/],
 ];
 export function registerRuntime(window: BrowserWindow, harness: ManagedHarness) {
   let events: AbortController | null = null;
+  const overlay = createDesktopOverlay(harness);
   const trusted = (event: Electron.IpcMainInvokeEvent) => {
     if (event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame)
       throw new Error('Untrusted IPC sender');
@@ -91,6 +98,12 @@ export function registerRuntime(window: BrowserWindow, harness: ManagedHarness) 
     });
     return result.canceled ? null : result.filePaths[0];
   });
+  ipcMain.handle('runtime:open-privacy', async (event, pane: string) => {
+    trusted(event);
+    if (pane !== 'accessibility' && pane !== 'screen') throw new Error('Unknown pane');
+    const name = pane === 'accessibility' ? 'Privacy_Accessibility' : 'Privacy_ScreenCapture';
+    await shell.openExternal(`x-apple.systempreferences:com.apple.preference.security?${name}`);
+  });
   ipcMain.handle('runtime:save-artifact', async (event, id: string) => {
     trusted(event);
     if (!/^[\w:.-]+$/.test(id)) throw new Error('Invalid artifact identifier');
@@ -138,6 +151,7 @@ export function registerRuntime(window: BrowserWindow, harness: ManagedHarness) 
               const record = JSON.parse(line.slice(6)) as RuntimeEvent;
               if (!Number.isSafeInteger(record.seq) || record.seq <= cursor) continue;
               cursor = record.seq;
+              overlay.observe(record);
               if (!window.isDestroyed()) window.webContents.send('runtime:event', record);
             }
           }
@@ -152,6 +166,12 @@ export function registerRuntime(window: BrowserWindow, harness: ManagedHarness) 
       }
     })();
   });
-  window.on('closed', () => events?.abort());
-  return () => events?.abort();
+  window.on('closed', () => {
+    events?.abort();
+    overlay.destroy();
+  });
+  return () => {
+    events?.abort();
+    overlay.destroy();
+  };
 }

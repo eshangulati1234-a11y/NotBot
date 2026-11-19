@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { FolderPlus } from 'lucide-react';
-import { Button, Dialog, Field, Segmented, useAutoGrow } from '../ui';
+import { Button, Dialog, Field, LookPicker, Segmented, useAutoGrow, useHelperLook } from '../ui';
 import { folderName, type Bot, type Workspace } from '../api';
 import type { HelperView } from '../lib/helpers';
+import { HelperMemory } from './HelperMemory';
 import './HelperDialog.css';
 
 interface HelperDialogProps {
@@ -31,8 +32,11 @@ function HelperForm({
   const [name, setName] = useState(bot.name);
   const [purpose, setPurpose] = useState(bot.purpose);
   const purposeInput = useAutoGrow(purpose);
+  const [look, setLook] = useHelperLook(bot.id, name);
   const [folderId, setFolderId] = useState(helper.workspace?.id ?? '');
   const [availability, setAvailability] = useState<Availability>(bot.enabled ? 'on' : 'paused');
+  const [learn, setLearn] = useState(bot.learn ?? true);
+  const [computer, setComputer] = useState(bot.computer ?? false);
   const [saving, setSaving] = useState(false);
 
   const trimmed = name.trim();
@@ -51,7 +55,7 @@ function HelperForm({
     if (!valid) return;
     setSaving(true);
     try {
-      const ok = await onSave({ ...bot, name: trimmed, purpose: purpose.trim(), enabled: availability === 'on' });
+      const ok = await onSave({ ...bot, name: trimmed, purpose: purpose.trim(), enabled: availability === 'on', learn, computer });
       if (!ok) return;
       if (folderId && folderId !== helper.workspace?.id) onChangeFolder(folderId);
       onClose();
@@ -79,6 +83,9 @@ function HelperForm({
             onChange={(event) => setName(event.target.value)}
           />
         )}
+      </Field>
+      <Field label="Look" hint="Pick an outfit and a fur colour. Saved on this computer.">
+        {() => <LookPicker name={name} value={look} onChange={setLook} />}
       </Field>
       <Field label="Job" hint="What this helper is for.">
         {(id, describedBy) => (
@@ -125,6 +132,11 @@ function HelperForm({
         ]}
         onChange={setAvailability}
       />
+      <label className="nb-memory__learn">
+        <input type="checkbox" checked={computer} onChange={(event) => setComputer(event.target.checked)} />
+        <span>Can use my Mac (needs Desktop control turned on in Settings)</span>
+      </label>
+      <HelperMemory botId={bot.id} learn={learn} onLearnChange={setLearn} />
       <div className="nb-helper-dialog__foot">
         <Button variant="secondary" onClick={onClose}>
           Cancel

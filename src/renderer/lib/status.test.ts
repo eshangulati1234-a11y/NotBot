@@ -54,11 +54,16 @@ describe('toolPhrase', () => {
   it('describes the folder root, searches, changes and notes', () => {
     expect(toolPhrase('list_directory', { path: '.' }, 'past')).toBe('Looked around the folder');
     expect(toolPhrase('list_directory', { path: 'docs' }, 'past')).toBe('Looked in docs');
-    expect(toolPhrase('search_text', { query: 'todo' }, 'past')).toBe('Searched for "todo"');
+    expect(toolPhrase('search_text', { query: 'todo' }, 'past')).toBe('Searched workspace for "todo"');
     expect(toolPhrase('write_file', { path: 'a.md' }, 'request')).toBe('Wants to change a.md');
     expect(toolPhrase('write_file', { path: 'a.md' }, 'past')).toBe('Changed a.md');
     expect(toolPhrase('search_memory', {}, 'past')).toBe('Checked its notes');
+    expect(toolPhrase('search_history', {}, 'past')).toBe('Looked back at earlier tasks');
     expect(toolPhrase('write_memory', {}, 'request')).toBe('Wants to save a note');
+    expect(toolPhrase('fetch_page', { url: 'https://www.docs.example.com/a' }, 'past')).toBe('Read a page from docs.example.com');
+    expect(toolPhrase('computer_look', {}, 'past')).toBe('Looked at the screen');
+    expect(toolPhrase('computer_act', { action: 'type' }, 'request')).toBe('Wants to type');
+    expect(toolPhrase('computer_act', {}, 'live')).toBe('Using the Mac…');
     expect(toolPhrase('mystery', {}, 'past')).toBe('Used a tool');
   });
 });

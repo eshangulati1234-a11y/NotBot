@@ -1,0 +1,155 @@
+.nb-folder-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-3);
+  min-height: 0;
+  height: 100%;
+  padding: var(--nb-space-4) var(--nb-space-3);
+  border-right: var(--nb-border);
+  background: var(--nb-surface);
+  overflow-y: auto;
+}
+
+.nb-folder-tree__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-1);
+  padding: 0 var(--nb-space-2);
+}
+
+.nb-folder-tree__folder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nb-ink);
+  font-family: var(--nb-mono);
+  font-size: var(--nb-text-base);
+  line-height: var(--nb-leading-base);
+  font-weight: var(--nb-weight-strong);
+}
+
+.nb-folder-tree__count {
+  color: var(--nb-ink-3);
+  font-size: var(--nb-text-xs);
+  line-height: var(--nb-leading-xs);
+}
+
+.nb-folder-tree__empty {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.nb-folder-tree__tree,
+.nb-folder-tree__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nb-folder-tree__group {
+  padding-left: var(--nb-space-4);
+}
+
+.nb-folder-tree__item {
+  display: flex;
+  flex-direction: column;
+}
+
+.nb-folder-tree__row {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-1);
+  width: 100%;
+  min-height: var(--nb-space-8);
+  padding: 0 var(--nb-space-2);
+  border: 0;
+  border-radius: var(--nb-radius-sm);
+  background: transparent;
+  color: var(--nb-ink-2);
+  font: inherit;
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.nb-folder-tree__row--file {
+  cursor: default;
+}
+
+.nb-folder-tree__row:hover {
+  background: var(--nb-hover);
+}
+
+.nb-folder-tree__row:focus-visible {
+  outline: none;
+  box-shadow: var(--nb-ring);
+}
+
+.nb-folder-tree__row[data-state='proposed'] {
+  background: var(--nb-accent-soft);
+  color: var(--nb-ink);
+}
+
+.nb-folder-tree__row[data-state='changed'] {
+  background: var(--nb-add-bg);
+  color: var(--nb-ink);
+}
+
+.nb-folder-tree__row[data-state='read'] {
+  color: var(--nb-ink);
+}
+
+.nb-folder-tree__chevron {
+  flex: none;
+  width: var(--nb-space-4);
+  height: var(--nb-space-4);
+  color: var(--nb-ink-3);
+}
+
+.nb-folder-tree__icon {
+  flex: none;
+  width: var(--nb-space-4);
+  height: var(--nb-space-4);
+  color: var(--nb-ink-3);
+}
+
+.nb-folder-tree__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--nb-mono);
+}
+
+.nb-folder-tree__mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--nb-space-1);
+  color: var(--nb-ink-3);
+  font-family: var(--nb-font);
+  font-size: var(--nb-text-xs);
+  line-height: var(--nb-leading-xs);
+}
+
+.nb-folder-tree__mark[data-state='proposed'] {
+  color: var(--nb-accent-text);
+  font-weight: var(--nb-weight-medium);
+}
+
+.nb-folder-tree__mark[data-state='changed'] {
+  color: var(--nb-add-ink);
+  font-weight: var(--nb-weight-medium);
+}
+
+.nb-folder-tree__mark-icon {
+  width: var(--nb-space-3);
+  height: var(--nb-space-3);
+}

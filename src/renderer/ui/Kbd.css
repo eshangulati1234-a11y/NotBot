@@ -1,0 +1,17 @@
+.nb-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nb-space-1);
+}
+
+.nb-kbd__key {
+  display: inline-grid;
+  min-width: var(--nb-space-4);
+  place-items: center;
+  padding: 0 var(--nb-space-1);
+  border-radius: var(--nb-radius-sm);
+  background: var(--nb-hover);
+  color: inherit;
+  font-size: var(--nb-text-xs);
+  line-height: var(--nb-leading-xs);
+}

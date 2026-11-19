@@ -1,0 +1,148 @@
+/* Reset and app-level rules. The only file allowed to use bare element selectors. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+dl,
+dd,
+figure,
+blockquote,
+pre {
+  margin: 0;
+}
+
+ul[role='list'],
+ul[role='tree'],
+ul[role='listbox'],
+ol[role='list'] {
+  padding: 0;
+  list-style: none;
+}
+
+body {
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font-family: var(--nb-font);
+  font-feature-settings: var(--nb-font-features);
+  font-size: var(--nb-text-base);
+  line-height: var(--nb-leading-base);
+  font-weight: var(--nb-weight-regular);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--nb-mono);
+}
+
+a {
+  color: var(--nb-accent-text);
+}
+
+svg {
+  flex-shrink: 0;
+}
+
+::selection {
+  background: var(--nb-accent-soft);
+  color: var(--nb-ink);
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--nb-ring);
+  border-radius: var(--nb-radius-sm);
+}
+
+/* Utilities */
+.nb-drag {
+  -webkit-app-region: drag;
+}
+
+.nb-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.nb-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.nb-fallback {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  justify-items: center;
+  gap: var(--nb-space-2);
+  padding: var(--nb-space-8);
+  text-align: center;
+}
+
+.nb-fallback__title {
+  font-size: var(--nb-text-xl);
+  line-height: var(--nb-leading-xl);
+  font-weight: var(--nb-weight-strong);
+}
+
+.nb-fallback__body {
+  color: var(--nb-ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

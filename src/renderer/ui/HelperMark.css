@@ -1,0 +1,40 @@
+.nb-helper-mark {
+  --nb-mark-size: calc(var(--nb-space-6) + var(--nb-space-1));
+  --nb-mark-color: var(--nb-mark-1);
+  display: inline-grid;
+  width: var(--nb-mark-size);
+  height: var(--nb-mark-size);
+  flex-shrink: 0;
+  place-items: center;
+  padding: calc(var(--nb-mark-size) * 0.15);
+  border-radius: var(--nb-radius-md);
+  background: color-mix(in srgb, var(--nb-mark-color) 16%, var(--nb-raised));
+  color: var(--nb-mark-color);
+}
+
+.nb-helper-mark[data-size='20'] {
+  --nb-mark-size: var(--nb-space-5);
+  border-radius: var(--nb-radius-sm);
+}
+
+.nb-helper-mark[data-size='28'] {
+  --nb-mark-size: calc(var(--nb-space-6) + var(--nb-space-1));
+}
+
+.nb-helper-mark[data-size='40'] {
+  --nb-mark-size: var(--nb-space-10);
+  border-radius: var(--nb-radius-lg);
+}
+
+.nb-helper-mark[data-tone='1'] { --nb-mark-color: var(--nb-mark-1); }
+.nb-helper-mark[data-tone='2'] { --nb-mark-color: var(--nb-mark-2); }
+.nb-helper-mark[data-tone='3'] { --nb-mark-color: var(--nb-mark-3); }
+.nb-helper-mark[data-tone='4'] { --nb-mark-color: var(--nb-mark-4); }
+.nb-helper-mark[data-tone='5'] { --nb-mark-color: var(--nb-mark-5); }
+.nb-helper-mark[data-tone='6'] { --nb-mark-color: var(--nb-mark-6); }
+
+.nb-helper-mark__grid {
+  width: 100%;
+  height: 100%;
+  fill: currentcolor;
+}

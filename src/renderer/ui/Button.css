@@ -1,0 +1,101 @@
+.nb-button {
+  display: inline-flex;
+  height: var(--nb-control-h);
+  align-items: center;
+  justify-content: center;
+  gap: var(--nb-space-2);
+  padding: 0 var(--nb-space-3);
+  border: var(--nb-border);
+  border-radius: var(--nb-radius-md);
+  background: var(--nb-raised);
+  color: var(--nb-ink);
+  font-size: var(--nb-text-base);
+  line-height: var(--nb-leading-base);
+  font-weight: var(--nb-weight-medium);
+  white-space: nowrap;
+  transition:
+    background-color var(--nb-dur-fast) var(--nb-ease),
+    border-color var(--nb-dur-fast) var(--nb-ease),
+    box-shadow var(--nb-dur-fast) var(--nb-ease);
+}
+
+/* Secondary */
+.nb-button[data-variant='secondary']:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--nb-raised), var(--nb-pressed) 60%);
+  border-color: var(--nb-line-strong);
+}
+
+.nb-button[data-variant='secondary']:active:not(:disabled) {
+  background: color-mix(in srgb, var(--nb-raised), var(--nb-pressed));
+}
+
+.nb-button[data-variant='secondary'][data-tone='danger'] {
+  border-color: var(--nb-danger);
+  color: var(--nb-danger);
+}
+
+.nb-button[data-variant='secondary'][data-tone='danger']:hover:not(:disabled) {
+  background: var(--nb-danger-soft);
+  border-color: var(--nb-danger);
+}
+
+.nb-button[data-variant='secondary'][data-tone='danger']:active:not(:disabled) {
+  background: var(--nb-danger-soft);
+  box-shadow: inset 0 0 0 100vmax var(--nb-pressed);
+}
+
+/* Primary */
+.nb-button[data-variant='primary'] {
+  background: var(--nb-accent);
+  border-color: var(--nb-accent);
+  color: var(--nb-accent-ink);
+}
+
+.nb-button[data-variant='primary']:hover:not(:disabled) {
+  background: var(--nb-accent-hover);
+  border-color: var(--nb-accent-hover);
+}
+
+.nb-button[data-variant='primary']:active:not(:disabled) {
+  background: var(--nb-accent-active);
+  border-color: var(--nb-accent-active);
+}
+
+.nb-button[data-variant='primary'][data-tone='danger'] {
+  background: var(--nb-danger);
+  border-color: var(--nb-danger);
+  color: var(--nb-paper);
+}
+
+/* Focus and disabled apply to every variant */
+.nb-button:focus-visible {
+  box-shadow: var(--nb-ring);
+  border-radius: var(--nb-radius-md);
+}
+
+.nb-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nb-button__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nb-button__spinner {
+  animation: nb-button-spin calc(var(--nb-dur-slow) * 3) linear infinite;
+}
+
+@keyframes nb-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-button__spinner {
+    animation: none;
+  }
+}

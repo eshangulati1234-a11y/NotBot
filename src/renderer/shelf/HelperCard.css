@@ -1,0 +1,104 @@
+.nb-helper-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--nb-space-4);
+  padding: var(--nb-space-5);
+  text-align: start;
+  font: inherit;
+  color: var(--nb-ink);
+  background: var(--nb-raised);
+  border: var(--nb-border);
+  border-radius: var(--nb-radius-lg);
+  box-shadow: var(--nb-shadow-1);
+  cursor: pointer;
+  transition:
+    box-shadow var(--nb-dur) var(--nb-ease),
+    border-color var(--nb-dur) var(--nb-ease);
+}
+
+.nb-helper-card:hover {
+  border-color: var(--nb-line-strong);
+  box-shadow: var(--nb-shadow-2);
+}
+
+.nb-helper-card:active {
+  background: var(--nb-pressed);
+}
+
+.nb-helper-card:focus-visible {
+  outline: none;
+  box-shadow: var(--nb-ring);
+}
+
+.nb-helper-card[data-state='waiting'] {
+  border-color: var(--nb-line-strong);
+}
+
+.nb-helper-card[data-state='off'] {
+  background: var(--nb-surface);
+}
+
+.nb-helper-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-3);
+  min-inline-size: 0;
+}
+
+.nb-helper-card__who {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.nb-helper-card__name {
+  font-size: var(--nb-text-md);
+  line-height: var(--nb-leading-md);
+  font-weight: var(--nb-weight-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nb-helper-card__boundary {
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+  color: var(--nb-ink-3);
+}
+
+.nb-helper-card__job {
+  font-size: var(--nb-text-base);
+  line-height: var(--nb-leading-base);
+  color: var(--nb-ink-2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.nb-helper-card__foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-1);
+  margin-block-start: auto;
+  padding-block-start: var(--nb-space-3);
+  border-block-start: var(--nb-border);
+}
+
+.nb-helper-card__state {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-2);
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+  font-weight: var(--nb-weight-medium);
+  color: var(--nb-ink);
+}
+
+.nb-helper-card__outcome {
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+  color: var(--nb-ink-3);
+}

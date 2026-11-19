@@ -1,0 +1,132 @@
+/* Design tokens: the only place colours, sizes and durations are defined. */
+:root {
+  color-scheme: light dark;
+
+  --nb-paper: light-dark(#f4efe6, #000000);
+  --nb-surface: light-dark(#fbf8f3, #0a0a0a);
+  --nb-raised: light-dark(#ffffff, #141414);
+  --nb-sunken: light-dark(#ece6da, #050505);
+  --nb-line: light-dark(#ddd5c7, #262626);
+  --nb-line-strong: light-dark(#c9bfae, #3d3d3d);
+  --nb-ink: light-dark(#1e1a15, #f5f5f5);
+  --nb-ink-2: light-dark(#4d463c, #b8b8b8);
+  --nb-ink-3: light-dark(#6b6256, #9c9c9c);
+  --nb-accent: light-dark(#0866ff, #0866ff);
+  --nb-accent-hover: light-dark(#0757d9, #3d85ff);
+  --nb-accent-active: light-dark(#064bb8, #0a58d9);
+  --nb-accent-ink: light-dark(#ffffff, #ffffff);
+  --nb-accent-soft: light-dark(#dbe8ff, #0a1d3f);
+  --nb-accent-text: light-dark(#0757d9, #5b9bff);
+  --nb-danger: light-dark(#a8321c, #f08a70);
+  --nb-danger-soft: light-dark(#f6e0d9, #331714);
+  --nb-add-bg: light-dark(#e2f0e3, #0f2a1b);
+  --nb-add-ink: light-dark(#1d5a2c, #9fe0b0);
+  --nb-del-bg: light-dark(#f7e1dc, #341517);
+  --nb-del-ink: light-dark(#8a2a17, #f3a99a);
+  --nb-gutter: light-dark(#eee8dd, #0d0d0d);
+  --nb-hover: light-dark(rgb(30 26 21 / 5%), rgb(255 255 255 / 7%));
+  --nb-pressed: light-dark(rgb(30 26 21 / 9%), rgb(255 255 255 / 11%));
+  --nb-focus: var(--nb-accent);
+  --nb-scrim: light-dark(rgb(30 26 21 / 35%), rgb(0 0 0 / 60%));
+  --nb-shadow-color: light-dark(rgb(30 26 21 / 10%), rgb(0 0 0 / 45%));
+
+  --nb-mark-1: light-dark(#b5694a, #d58a6b);
+  --nb-mark-2: light-dark(#a9812a, #d4ae55);
+  --nb-mark-3: light-dark(#6e8b5b, #97b585);
+  --nb-mark-4: light-dark(#50708a, #86a5bf);
+  --nb-mark-5: light-dark(#7e5a7e, #b08ab0);
+  --nb-mark-6: light-dark(#3e7d78, #72b0aa);
+
+  --nb-space-1: 4px;
+  --nb-space-2: 8px;
+  --nb-space-3: 12px;
+  --nb-space-4: 16px;
+  --nb-space-5: 20px;
+  --nb-space-6: 24px;
+  --nb-space-8: 32px;
+  --nb-space-10: 40px;
+  --nb-space-12: 48px;
+  --nb-space-16: 64px;
+
+  --nb-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --nb-font-features: 'cv11', 'ss03';
+  --nb-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --nb-text-xs: 11px;
+  --nb-leading-xs: 16px;
+  --nb-text-sm: 12.5px;
+  --nb-leading-sm: 18px;
+  --nb-text-base: 14px;
+  --nb-leading-base: 20px;
+  --nb-text-md: 15px;
+  --nb-leading-md: 22px;
+  --nb-text-lg: 18px;
+  --nb-leading-lg: 26px;
+  --nb-text-xl: 22px;
+  --nb-leading-xl: 30px;
+  --nb-text-2xl: 30px;
+  --nb-leading-2xl: 38px;
+  --nb-tracking-2xl: -0.02em;
+
+  --nb-weight-regular: 400;
+  --nb-weight-medium: 500;
+  --nb-weight-strong: 600;
+
+  --nb-radius-sm: 6px;
+  --nb-radius-md: 8px;
+  --nb-radius-lg: 12px;
+  --nb-radius-xl: 16px;
+  --nb-radius-pill: 999px;
+
+  --nb-shadow-1: 0 1px 2px var(--nb-shadow-color);
+  --nb-shadow-2: 0 1px 2px var(--nb-shadow-color), 0 6px 16px var(--nb-shadow-color);
+  --nb-shadow-3: 0 2px 6px var(--nb-shadow-color), 0 24px 56px var(--nb-shadow-color);
+  --nb-ring: 0 0 0 2px var(--nb-paper), 0 0 0 4px var(--nb-focus);
+  --nb-field-focus: light-dark(#8c8374, #6e6e6e);
+  --nb-ring-field: 0 0 0 3px color-mix(in srgb, var(--nb-field-focus) 22%, transparent);
+
+  --nb-dur-fast: 120ms;
+  --nb-dur: 180ms;
+  --nb-dur-slow: 280ms;
+  --nb-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --nb-z-raised: 10;
+  --nb-z-pane: 20;
+  --nb-z-titlebar: 30;
+  --nb-z-overlay: 100;
+  --nb-z-dialog: 110;
+  --nb-z-notice: 120;
+
+  --nb-control-h: 32px;
+  --nb-titlebar-h: 44px;
+  --nb-tree-w: 248px;
+  --nb-review-w: 480px;
+  --nb-trail-max: 760px;
+  --nb-border: 1px solid var(--nb-line);
+
+  /* Component sizes shared by the ui kit. */
+  --nb-icon-sm: 14px;
+  --nb-icon-md: 16px;
+  --nb-dot-sm: 10px;
+  --nb-dot-md: 14px;
+  --nb-dialog-sm: 400px;
+  --nb-dialog-md: 520px;
+  --nb-dialog-lg: 680px;
+  --nb-traffic-lights-w: 80px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nb-dur-fast: 0ms;
+    --nb-dur: 0ms;
+    --nb-dur-slow: 0ms;
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "name": "notbot",
+  "productName": "notbot",
+  "version": "0.1.0",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run src",
+    "package": "npm run build:harness && npm run build && electron-builder --dir",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build:harness": "node scripts/build-harness.mjs"
+  },
+  "build": {
+    "appId": "com.notbot.desktop",
+    "files": [
+      "out/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/harness/notbot-harness",
+        "to": "harness",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@radix-ui/react-dialog": "^1.3.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "electron": "^45.3.4",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^3.0.0",
+    "eslint": "^10.15.0",
+    "prettier": "^3.10.1",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^6.4.6",
+    "vitest": "^5.1.0"
+  }
+}

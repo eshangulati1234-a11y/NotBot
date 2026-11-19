@@ -1,0 +1,69 @@
+.nb-boundary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nb-space-2);
+  min-height: var(--nb-control-h);
+  max-width: 100%;
+  padding: 0 var(--nb-space-3);
+  border: var(--nb-border);
+  border-radius: var(--nb-radius-pill);
+  background: var(--nb-surface);
+  color: var(--nb-ink-2);
+  font: inherit;
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+  cursor: pointer;
+  transition: background var(--nb-dur-fast) var(--nb-ease);
+}
+
+.nb-boundary-badge:hover {
+  background: var(--nb-hover);
+}
+
+.nb-boundary-badge:active {
+  background: var(--nb-pressed);
+}
+
+.nb-boundary-badge:focus-visible {
+  outline: none;
+  box-shadow: var(--nb-ring);
+}
+
+.nb-boundary-badge__icon {
+  flex: none;
+  width: var(--nb-space-4);
+  height: var(--nb-space-4);
+  color: var(--nb-accent-text);
+}
+
+.nb-boundary-badge__folder {
+  flex: none;
+  font-family: var(--nb-mono);
+  font-weight: var(--nb-weight-medium);
+  color: var(--nb-ink);
+}
+
+.nb-boundary-badge__rule {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nb-boundary-badge__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-4);
+}
+
+.nb-boundary-badge__path {
+  margin: 0;
+  padding: var(--nb-space-2) var(--nb-space-3);
+  border-radius: var(--nb-radius-md);
+  background: var(--nb-sunken);
+  color: var(--nb-ink-2);
+  font-family: var(--nb-mono);
+  font-size: var(--nb-text-xs);
+  line-height: var(--nb-leading-xs);
+  overflow-wrap: anywhere;
+}

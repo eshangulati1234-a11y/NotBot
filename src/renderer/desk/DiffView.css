@@ -1,0 +1,121 @@
+.nb-diff-view {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-2);
+  min-width: 0;
+}
+
+.nb-diff-view__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-3);
+  font-family: var(--nb-mono);
+  font-size: var(--nb-text-xs);
+  line-height: var(--nb-leading-xs);
+}
+
+.nb-diff-view__tag {
+  padding: 0 var(--nb-space-2);
+  border-radius: var(--nb-radius-pill);
+  background: var(--nb-accent-soft);
+  color: var(--nb-accent-text);
+  font-family: var(--nb-font);
+  font-weight: var(--nb-weight-medium);
+}
+
+.nb-diff-view__stat[data-kind='add'] {
+  color: var(--nb-add-ink);
+}
+
+.nb-diff-view__stat[data-kind='del'] {
+  color: var(--nb-del-ink);
+}
+
+.nb-diff-view__notice {
+  margin: 0;
+  padding: var(--nb-space-2) var(--nb-space-3);
+  border-radius: var(--nb-radius-md);
+  background: var(--nb-sunken);
+  color: var(--nb-ink-2);
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+}
+
+.nb-diff-view__empty {
+  margin: 0;
+  color: var(--nb-ink-3);
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+}
+
+.nb-diff-view__scroll {
+  box-sizing: border-box;
+  width: 100%;
+  overflow-x: auto;
+  border: var(--nb-border);
+  border-radius: var(--nb-radius-md);
+  background: var(--nb-raised);
+}
+
+.nb-diff-view__body {
+  display: flex;
+  flex-direction: column;
+  min-width: max-content;
+  font-family: var(--nb-mono);
+  font-size: var(--nb-text-xs);
+  line-height: var(--nb-leading-xs);
+}
+
+.nb-diff-view__hunk {
+  display: flex;
+  flex-direction: column;
+}
+
+.nb-diff-view__header {
+  padding: var(--nb-space-1) var(--nb-space-3);
+  background: var(--nb-gutter);
+  color: var(--nb-ink-3);
+}
+
+.nb-diff-view__line {
+  display: grid;
+  grid-template-columns: var(--nb-space-10) var(--nb-space-10) var(--nb-space-4) 1fr;
+  color: var(--nb-ink);
+}
+
+.nb-diff-view__line[data-kind='add'] {
+  background: var(--nb-add-bg);
+  color: var(--nb-add-ink);
+}
+
+.nb-diff-view__line[data-kind='del'] {
+  background: var(--nb-del-bg);
+  color: var(--nb-del-ink);
+}
+
+.nb-diff-view__no {
+  padding: 0 var(--nb-space-2);
+  background: var(--nb-gutter);
+  color: var(--nb-ink-3);
+  text-align: right;
+  user-select: none;
+}
+
+.nb-diff-view__sign {
+  text-align: center;
+  user-select: none;
+}
+
+.nb-diff-view__text {
+  padding-right: var(--nb-space-3);
+  white-space: pre;
+}
+
+.nb-diff-view__sr {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

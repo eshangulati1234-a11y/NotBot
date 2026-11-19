@@ -1,0 +1,65 @@
+.nb-settings-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-8);
+}
+
+.nb-settings-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-3);
+  padding-block-end: var(--nb-space-8);
+  border-block-end: var(--nb-border);
+}
+
+.nb-settings-dialog__section:last-child {
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+.nb-settings-dialog__heading {
+  font-size: var(--nb-text-lg);
+  line-height: var(--nb-leading-lg);
+  font-weight: var(--nb-weight-strong);
+  color: var(--nb-ink);
+}
+
+.nb-settings-dialog__text {
+  font-size: var(--nb-text-base);
+  line-height: var(--nb-leading-base);
+  color: var(--nb-ink-2);
+}
+
+.nb-settings-dialog__folders {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-2);
+  list-style: none;
+  padding: 0;
+}
+
+.nb-settings-dialog__folder {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  padding: var(--nb-space-3);
+  background: var(--nb-surface);
+  border: var(--nb-border);
+  border-radius: var(--nb-radius-md);
+}
+
+.nb-settings-dialog__folder-name {
+  font-family: var(--nb-mono);
+  font-size: var(--nb-text-base);
+  font-weight: var(--nb-weight-medium);
+  color: var(--nb-ink);
+}
+
+.nb-settings-dialog__folder-path {
+  font-family: var(--nb-mono);
+  font-size: var(--nb-text-sm);
+  color: var(--nb-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

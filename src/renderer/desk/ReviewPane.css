@@ -1,0 +1,122 @@
+.nb-review-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  border-left: var(--nb-border);
+  background: var(--nb-surface);
+}
+
+.nb-review-pane__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nb-space-3);
+  padding: var(--nb-space-3) var(--nb-space-4);
+  border-bottom: var(--nb-border);
+}
+
+.nb-review-pane__count {
+  color: var(--nb-ink-2);
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+  font-weight: var(--nb-weight-medium);
+}
+
+.nb-review-pane__head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-2);
+}
+
+.nb-review-pane__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nb-space-4);
+  min-height: 0;
+  padding: var(--nb-space-4);
+  overflow-y: auto;
+}
+
+.nb-review-pane__body > * {
+  max-width: 100%;
+}
+
+.nb-review-pane__title {
+  margin: 0;
+  color: var(--nb-ink);
+  font-size: var(--nb-text-lg);
+  line-height: var(--nb-leading-lg);
+  font-weight: var(--nb-weight-strong);
+}
+
+.nb-review-pane__text {
+  margin: 0;
+  color: var(--nb-ink-2);
+  font-size: var(--nb-text-base);
+  line-height: var(--nb-leading-base);
+}
+
+.nb-review-pane__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--nb-space-3);
+  padding: var(--nb-space-3) var(--nb-space-4);
+  border-top: var(--nb-border);
+  background: var(--nb-surface);
+}
+
+.nb-review-pane__body > .nb-review-pane__foot {
+  align-self: stretch;
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+  justify-content: flex-start;
+}
+
+.nb-review-pane__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-3);
+}
+
+.nb-review-pane__result-title {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-2);
+  margin: 0;
+  color: var(--nb-ink);
+  font-size: var(--nb-text-lg);
+  line-height: var(--nb-leading-lg);
+  font-weight: var(--nb-weight-strong);
+}
+
+.nb-review-pane__result[data-kind='failed'] .nb-review-pane__result-title {
+  color: var(--nb-danger);
+}
+
+.nb-review-pane__result-icon {
+  width: var(--nb-space-5);
+  height: var(--nb-space-5);
+  color: var(--nb-add-ink);
+}
+
+.nb-review-pane__files {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nb-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The shortcut hints inherit each button's text colour so they stay legible on primary and danger buttons. */
+.nb-review-pane__action .nb-kbd__key {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 40%, transparent);
+  opacity: 1;
+}

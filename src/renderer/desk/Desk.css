@@ -1,0 +1,120 @@
+.nb-desk {
+  display: grid;
+  grid-template-columns: var(--nb-tree-w) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'head head'
+    'tree centre';
+  height: 100%;
+  min-height: 0;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+}
+
+.nb-desk[data-review] {
+  grid-template-columns: var(--nb-tree-w) minmax(0, 1fr) var(--nb-review-w);
+  grid-template-areas:
+    'head head head'
+    'tree centre review';
+}
+
+.nb-desk__head {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nb-space-3) var(--nb-space-6);
+  padding: var(--nb-space-4) var(--nb-space-6);
+  border-bottom: var(--nb-border);
+}
+
+.nb-desk__who {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-3);
+  min-width: 0;
+}
+
+.nb-desk__titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nb-desk__title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--nb-text-xl);
+  line-height: var(--nb-leading-xl);
+  font-weight: var(--nb-weight-strong);
+  letter-spacing: -0.02em;
+}
+
+.nb-desk__purpose {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nb-ink-2);
+  font-size: var(--nb-text-sm);
+  line-height: var(--nb-leading-sm);
+}
+
+.nb-desk__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--nb-space-3);
+  min-width: 0;
+}
+
+.nb-desk__tree {
+  grid-area: tree;
+  min-height: 0;
+}
+
+.nb-desk__centre {
+  grid-area: centre;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.nb-desk__dock {
+  padding: 0 var(--nb-space-6) var(--nb-space-5);
+}
+
+.nb-desk__dock-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nb-space-1);
+  max-width: var(--nb-trail-max);
+  margin-inline: auto;
+}
+
+.nb-desk__review {
+  grid-area: review;
+  min-height: 0;
+  animation: nb-desk-slide-in var(--nb-dur-slow) var(--nb-ease) both;
+}
+
+@keyframes nb-desk-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--nb-space-8));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-desk__review {
+    animation: none;
+  }
+}

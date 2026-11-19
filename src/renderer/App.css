@@ -1,0 +1,20 @@
+.nb-app {
+  display: grid;
+  grid-template-rows: var(--nb-titlebar-h) minmax(0, 1fr);
+  block-size: 100vh;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+}
+
+.nb-app__main {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.nb-app__main > * {
+  min-block-size: 0;
+  overflow-y: auto;
+}
